@@ -1,0 +1,13 @@
+%%-*- mode: erlang -*- 
+{application, erl_proxy,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { erl_proxy_app, []}},
+  {env, []}
+ ]}.
