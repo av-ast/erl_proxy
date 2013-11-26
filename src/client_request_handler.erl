@@ -7,37 +7,35 @@
 -export([content_types_accepted/2]).
 
 %% Custom callbacks.
--export([create_client_request/2]).
--export([get_client_requests/2]).
+-export([request_handler/2]).
 
--define(P(Data), io:format("~n~p~n", [Data])).
+-define(REPLY_STATUS, 200).
 
 init({tcp,http}, _Req, _Opts) ->
   {upgrade, protocol, cowboy_rest}.
 
 allowed_methods(Req, State) ->
-	{[<<"GET">>, <<"POST">>, <<"PUT">>, <<"DELETE">>, <<"HEAD">>], Req, State}.
+	{[<<"GET">>, <<"POST">>, <<"PUT">>, <<"PATCH">>, <<"HEAD">>], Req, State}.
 
 content_types_provided(Req, State) ->
-	{[{<<"application/json">>, get_client_requests}], Req, State}.
+	{[{<<"application/json">>, request_handler}], Req, State}.
 
 content_types_accepted(Req, State) ->
-	{[{{<<"application">>, <<"x-www-form-urlencoded">>, []}, create_client_request}],
-		Req, State}.
+	{[{{<<"application">>, <<"x-www-form-urlencoded">>, []}, request_handler}], Req, State}.
 
-get_client_requests(Req, State) ->
-	Body = <<"{\"rest\": \"GET request accepted!\"}">>,
-	{Body, Req, State}.
+request_handler(Req, State) ->
+  {Method, _} = cowboy_req:method(Req),
+  {Host, _} = cowboy_req:host(Req),
+  {Path, _} = cowboy_req:path(Req),
+  {Url, _}  = cowboy_req:url(Req),
+  {QString, _} = cowboy_req:qs(Req),
+  {Headers, _} = cowboy_req:headers(Req),
+  HasBody = cowboy_req:has_body(Req),
+  {ok, Body, _} = cowboy_req:body(Req),
 
-create_client_request(Req, State) ->
-	{ok, [{Body, true}], Req2} = cowboy_req:body_qs(Req),
-  ?P(Body),
-  ?P(jiffy:decode(Body)),
-	case cowboy_req:method(Req2) of
-		{<<"POST">>, Req3} ->
-			{{true, <<"BLAH BLAH">>}, Req3, State};
-		{_, Req3} ->
-			{true, Req3, State}
-	end.
+  % TODO: publish to redis [Method, Host, Path, Url, QString, Headers, HasBody, Body]
 
+  Req2 = cowboy_req:compact(Req),
+  {ok, _} = cowboy_req:reply(?REPLY_STATUS, [{<<"connection">>, <<"close">>}], Req2),
 
+  {halt, Req2, State}.

@@ -18,8 +18,7 @@ start_link() ->
 
 init([]) ->
   {ok, RedisClient} = eredis:start_link(),
-  State = #state{redis_client = RedisClient},
-  {ok, State}.
+  {ok, #state{redis_client = RedisClient}}.
 
 stop() ->
   gen_server:cast(?MODULE, stop).
