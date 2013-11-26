@@ -27,6 +27,7 @@ stop(_State) ->
 %% INTERNAL FUNCTIONS
 
 start_deps_applications() ->
+  ok = lager:start(),
   ok = application:start(crypto),
   ok = application:start(sasl),
   ok = application:start(ranch),

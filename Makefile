@@ -14,6 +14,9 @@ test:
 	./rebar eunit skip_deps=true
 
 run:
-	erl -pa ebin -pa deps/*/ebin -s erl_proxy_app -sname erl_proxy_node -smp enable
+	erl -pa ebin -pa deps/*/ebin \
+		-s erl_proxy_app -sname erl_proxy_node -smp enable \
+		-lager colored true \
+					 handlers '[{lager_console_backend, debug}]'
 
 .PHONY: all no_deps full clean test run

@@ -34,6 +34,7 @@ request_handler(Req, State) ->
   {ok, Body, _} = cowboy_req:body(Req),
 
   % TODO: publish to redis [Method, Host, Path, Url, QString, Headers, HasBody, Body]
+  lager:debug("Request: ~p", [[Method, Host, Path, Url, QString, Headers, HasBody, Body]]),
 
   Req2 = cowboy_req:compact(Req),
   {ok, _} = cowboy_req:reply(?REPLY_STATUS, [{<<"connection">>, <<"close">>}], Req2),
