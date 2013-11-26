@@ -36,7 +36,7 @@ start_deps_applications() ->
 start_web_server() ->
   Dispatch = cowboy_router:compile([
     {'_', [
-      {"/", client_request_handler, []}
+      {'_', client_request_handler, []}
     ]}
   ]),
 
