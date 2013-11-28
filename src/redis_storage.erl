@@ -1,4 +1,4 @@
--module(redis_gateway).
+-module(redis_storage).
 -behavior(gen_server).
 
 -author("av.astafyev@gmail.com").
