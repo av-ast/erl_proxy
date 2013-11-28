@@ -27,7 +27,7 @@ request_handler(Req, State) ->
   Request = prepare_request_for_storage(Req),
   lager:debug("Request: ~p", [Request]),
 
-  redis_storage:push(Request),
+  storage:push(Request),
 
   Req2 = cowboy_req:compact(Req),
   {ok, _} = cowboy_req:reply(?REPLY_STATUS, [{<<"connection">>, <<"close">>}], Req2),
