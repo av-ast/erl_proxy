@@ -5,7 +5,7 @@
 
 -export([start_link/0]).
 -export([init/1, handle_call/3, handle_cast/2, terminate/2, handle_info/2, code_change/3, stop/0]).
--export([get/1, set/2]).
+-export([push/1, pop/0, queue_length/0]).
 
 -record(state, {
           redis_client :: pid() | undefined
@@ -25,22 +25,33 @@ stop() ->
 
 %% public client API
 
-get(Key) ->
-  gen_server:call(?MODULE, {get, Key}).
+push(Term) when is_binary(Term) ->
+  gen_server:cast(?MODULE, {push, Term});
+push(Term) ->
+  push(term_to_binary(Term)).
 
-set(Key, Value) ->
-  gen_server:cast(?MODULE, {set, Key, Value}).
+pop() ->
+  gen_server:call(?MODULE, pop).
+
+queue_length() ->
+  gen_server:call(?MODULE, queue_length).
 
 %% gen_server callbacks
 
-handle_call({get, Key}, _From, #state{redis_client = RedisClient} = State) ->
-  Response = eredis:q(RedisClient, ["GET", Key]),
-  {reply, Response, State};
+handle_call(pop, _From, #state{redis_client = RedisClient} = State) ->
+  Result = case eredis:q(RedisClient, ["LPOP", queue]) of
+             {ok, undefined} -> empty_queue;
+             {ok, Res} -> binary_to_term(Res)
+           end,
+  {reply, Result, State};
+handle_call(queue_length, _From, #state{redis_client = RedisClient} = State) ->
+  {ok, Length} = eredis:q(RedisClient, ["LLEN", queue]),
+  {reply, binary_to_integer(Length), State};
 handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
-handle_cast({set, Key, Value}, #state{redis_client = RedisClient} = State) ->
-  {ok, _} = eredis:q(RedisClient, ["SET", Key, Value]),
+handle_cast({push, Term}, #state{redis_client = RedisClient} = State) ->
+  {ok, _} = eredis:q(RedisClient, ["RPUSH", queue, Term]),
   {noreply, State};
 handle_cast(_Message, State) ->
   {noreply, State}.
@@ -53,5 +64,3 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVersion, State, _Extra) ->
   {ok, State}.
-
-%% helper methods
