@@ -1,4 +1,4 @@
--module(erl_proxy_redis_storage_tests).
+-module(redis_storage_tests).
 
 -compile(export_all).
 
