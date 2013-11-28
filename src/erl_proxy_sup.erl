@@ -25,6 +25,7 @@ start_link() ->
 
 init([]) ->
   Children = [
-              ?CHILD(redis_storage, worker)
+              ?CHILD(redis_storage, worker),
+              ?CHILD(ets_storage, worker)
              ],
   {ok, { {one_for_one, 5, 10}, Children} }.
