@@ -24,19 +24,22 @@ content_types_accepted(Req, State) ->
 	{[{{<<"application">>, <<"x-www-form-urlencoded">>, []}, request_handler}], Req, State}.
 
 request_handler(Req, State) ->
-  {Method, _} = cowboy_req:method(Req),
-  {Host, _} = cowboy_req:host(Req),
-  {Path, _} = cowboy_req:path(Req),
-  {Url, _}  = cowboy_req:url(Req),
-  {QString, _} = cowboy_req:qs(Req),
-  {Headers, _} = cowboy_req:headers(Req),
-  HasBody = cowboy_req:has_body(Req),
-  {ok, Body, _} = cowboy_req:body(Req),
+  Request = prepare_request_for_storage(Req),
+  lager:debug("Request: ~p", [Request]),
 
-  % TODO: publish to redis [Method, Host, Path, Url, QString, Headers, HasBody, Body]
-  lager:debug("Request: ~p", [[Method, Host, Path, Url, QString, Headers, HasBody, Body]]),
+  redis_storage:push(Request),
 
   Req2 = cowboy_req:compact(Req),
   {ok, _} = cowboy_req:reply(?REPLY_STATUS, [{<<"connection">>, <<"close">>}], Req2),
-
   {halt, Req2, State}.
+
+prepare_request_for_storage(Req) ->
+  {Method, _} = cowboy_req:method(Req),
+  {Host, _} = cowboy_req:host(Req),
+  {Url, _}  = cowboy_req:url(Req),
+  {Path, _} = cowboy_req:path(Req),
+  {QString, _} = cowboy_req:qs(Req),
+  {Headers, _} = cowboy_req:headers(Req),
+  {ok, Body, _} = cowboy_req:body(Req),
+
+  [{method, Method}, {host, Host}, {url, Url}, {path, Path}, {qstring, QString}, {headers, Headers}, {body, Body}].
