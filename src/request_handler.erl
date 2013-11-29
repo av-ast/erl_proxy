@@ -1,4 +1,4 @@
--module(client_request_handler).
+-module(request_handler).
 
 %% Standard callbacks.
 -export([init/3]).
