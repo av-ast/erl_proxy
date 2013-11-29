@@ -28,6 +28,7 @@ stop(_State) ->
 
 start_deps_applications() ->
   ok = lager:start(),
+  ok = inets:start(),
   ok = application:start(crypto),
   ok = application:start(sasl),
   ok = application:start(ranch),
