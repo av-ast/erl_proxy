@@ -25,14 +25,20 @@ stop() ->
 
 %% public client API
 
+%% @spec push(Term) -> ok
+%%
 push(Term) when is_binary(Term) ->
   gen_server:cast(?MODULE, {push, Term});
 push(Term) ->
   push(term_to_binary(Term)).
 
+%% @spec pop() -> term() | empty_queue
+%%
 pop() ->
   gen_server:call(?MODULE, pop).
 
+%% @spec queue_length() -> integer()
+%%
 queue_length() ->
   gen_server:call(?MODULE, queue_length).
 

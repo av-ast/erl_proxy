@@ -9,11 +9,17 @@
 -define(BACKEND, redis_storage).
 -endif.
 
+%% @spec push(Term) -> ok
+%%
 push(Term) ->
   ?BACKEND:push(Term).
 
+%% @spec pop() -> term() | empty_queue
+%%
 pop() ->
   ?BACKEND:pop().
 
+%% @spec queue_length() -> integer()
+%%
 queue_length() ->
   ?BACKEND:queue_length().
