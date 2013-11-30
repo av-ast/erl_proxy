@@ -31,6 +31,7 @@ start_link() ->
 
 init([]) ->
   Children = [
-              ?CHILD(?STORAGE_BACKEND, worker)
+              ?CHILD(?STORAGE_BACKEND, worker),
+              ?CHILD(request_forwarder, worker)
              ],
   {ok, { {one_for_one, 5, 10}, Children} }.

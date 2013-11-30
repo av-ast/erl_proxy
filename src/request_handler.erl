@@ -25,7 +25,7 @@ content_types_accepted(Req, State) ->
 
 request_handler(Req, State) ->
   Request = prepare_request_for_storage(Req),
-  lager:debug("Request: ~p", [Request]),
+  lager:debug("[Request]: ~p", [Request]),
 
   storage:push(Request),
 
@@ -35,11 +35,11 @@ request_handler(Req, State) ->
 
 prepare_request_for_storage(Req) ->
   {Method, _} = cowboy_req:method(Req),
-  {Host, _} = cowboy_req:host(Req),
   {Url, _}  = cowboy_req:url(Req),
   {Path, _} = cowboy_req:path(Req),
   {QString, _} = cowboy_req:qs(Req),
+  {ContentType, _} = cowboy_req:header(<<"content-type">>, Req, <<"text/plain">>),
   {Headers, _} = cowboy_req:headers(Req),
   {ok, Body, _} = cowboy_req:body(Req),
 
-  [{method, Method}, {host, Host}, {url, Url}, {path, Path}, {qstring, QString}, {headers, Headers}, {body, Body}].
+  [{method,Method}, {url,Url}, {path, Path}, {qstring, QString}, {headers,Headers}, {body, Body},{content_type, ContentType}].
