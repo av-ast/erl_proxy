@@ -13,18 +13,13 @@
          terminate/2,
          code_change/3]).
 
--define(SERVER, ?MODULE).
--define(FORWARD_URL, "http://localhost").
--define(DELAY, 1000).  % delay (milliseconds) between requests forwarding
--define(RETRY_REQUEST, true).
-
 -record(state, { tref }).
 
 start_link() ->
-  gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
-	{ok, TRef} = timer:send_interval(?DELAY, process_request),
+	{ok, TRef} = timer:send_interval(erl_proxy_app:config(delay_between_requests), process_request),
   {ok, #state{tref = TRef}}.
 
 handle_call(_Request, _From, State) ->
@@ -75,17 +70,21 @@ code_change(_OldVsn, State, _Extra) ->
 
 forward_request(Request) ->
   Request2 = utils:deep_binary_to_list(Request),
+  % TODO: replace headers[host] with config[forward_to]
 
   Response = httpc:request(
    http_verb_to_atom(proplists:get_value(method, Request2, "GET")),
    {
-     ?FORWARD_URL,
+     erl_proxy_app:config(forward_to),
      proplists:get_value(headers, Request2, []),
      proplists:get_value(content_type, Request2, "text/plain"),
      proplists:get_value(body, Request2, "")
    },
-   [{timeout, 5000}, {connect_timeout, 1000}], % HTTPOptions
-   []  % Options
+   [
+    {timeout, erl_proxy_app:config(request_timeout)},
+    {connect_timeout, erl_proxy_app:config(connection_timeout)}
+   ],
+   []
   ),
 
   case Response of
@@ -110,7 +109,7 @@ http_verb_to_atom(Verb) ->
   end.
 
 retry_request(Request) ->
-  case ?RETRY_REQUEST of
+  case erl_proxy_app:config(retry_requests) of
     true -> storage:push(Request);
     _ -> ok
   end.

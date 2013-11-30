@@ -9,8 +9,6 @@
 %% Custom callbacks.
 -export([request_handler/2]).
 
--define(REPLY_STATUS, 200).
-
 init({tcp,http}, _Req, _Opts) ->
   {upgrade, protocol, cowboy_rest}.
 
@@ -30,7 +28,7 @@ request_handler(Req, State) ->
   storage:push(Request),
 
   Req2 = cowboy_req:compact(Req),
-  {ok, _} = cowboy_req:reply(?REPLY_STATUS, [{<<"connection">>, <<"close">>}], Req2),
+  {ok, _} = cowboy_req:reply(erl_proxy_app:config(reply_status), [{<<"connection">>, <<"close">>}], Req2),
   {halt, Req2, State}.
 
 prepare_request_for_storage(Req) ->

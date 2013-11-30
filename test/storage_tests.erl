@@ -5,7 +5,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 push_pop_test() ->
-  erl_proxy_sup:start_link(),
+  erl_proxy_app:start(),
 
   ?assertEqual(0, storage:queue_length()),
 
