@@ -10,7 +10,7 @@
 -define(HTTP_PORT, 8888).
 
 start() ->
-    application:start(erl_proxy).
+  application:start(erl_proxy).
   
 %% ===================================================================
 %% Application callbacks
@@ -19,7 +19,7 @@ start() ->
 start(_StartType, _StartArgs) ->
   start_deps_applications(),
   start_web_server(),
-  erl_proxy_sup:start_link().
+  {ok, _} = erl_proxy_sup:start_link().
 
 stop(_State) ->
   ok.
