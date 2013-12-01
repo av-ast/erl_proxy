@@ -23,7 +23,6 @@ content_types_accepted(Req, State) ->
 
 request_handler(Req, State) ->
   Request = prepare_request_for_storage(Req),
-  lager:debug("[Request]: ~p", [Request]),
 
   storage:push(Request),
 
