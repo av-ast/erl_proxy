@@ -88,9 +88,14 @@ http_request(ForwardURI, Request) ->
   RequestURI = proplists:get_value(url, Request, ""),
   ContentType = proplists:get_value(content_type, Request, "text/plain"),
   Body = proplists:get_value(body, Request, ""),
+  HTTPOptions = [
+                 {timeout, erl_proxy_app:config(request_timeout)},
+                 {connect_timeout, erl_proxy_app:config(connection_timeout)}
+                ],
 
   {ok, {FSchema, FUserInfo, FHost, FPort, _FPath, _FQueryString}} = uri:parse(ForwardURI),
   {ok, {_RSchema, _RUserInfo, _RHost, _RPort, RPath, RQueryString}} = uri:parse(RequestURI),
+
   URI = uri:to_string({FSchema, FUserInfo, FHost, FPort, RPath, RQueryString}),
 
   FullHost = lists:flatten(uri:full_host_iolist({http, [], FHost, FPort, [], ""}, [])),
@@ -98,17 +103,14 @@ http_request(ForwardURI, Request) ->
   Headers2 = lists:keyreplace("host", 1, Headers, {"host", FullHost}),
   Headers3 = lists:keyreplace("user-agent", 1, Headers2, {"user-agent", erl_proxy_app:config(user_agent)}),
 
-  lager:debug("[REQUEST]: ~p", [[Method, URI, Headers3, Body]]),
-
-  httpc:request(
-   Method,
-   {URI, Headers3, ContentType, Body},
-   [
-    {timeout, erl_proxy_app:config(request_timeout)},
-    {connect_timeout, erl_proxy_app:config(connection_timeout)}
-   ],
-   []
-  ).
+  case lists:member(Method, [get, head]) of
+    true ->
+      lager:debug("[REQUEST]: ~p", [[Method, URI, Headers3]]),
+      httpc:request(Method, {URI, Headers3}, HTTPOptions, []);
+    _ ->
+      lager:debug("[REQUEST]: ~p", [[Method, URI, Headers3, Body]]),
+      httpc:request(Method, {URI, Headers3, ContentType, Body}, HTTPOptions, [])
+  end.
 
 %%
 %% @spec http_verb_to_atom(Verb) -> atom() | bad_match
