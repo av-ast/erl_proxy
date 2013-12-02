@@ -17,6 +17,7 @@ run:
 	erl -pa ebin -pa deps/*/ebin \
 		-s erl_proxy_app -sname erl_proxy_node -smp enable \
 		-lager colored true \
-					 handlers '[{lager_console_backend, debug}]'
+					 handlers '[{lager_console_backend, debug}]' \
+		-sasl errlog_type error
 
 .PHONY: all no_deps full clean test run

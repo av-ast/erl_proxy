@@ -17,7 +17,7 @@ start(_StartType, _StartArgs) ->
   load_config(),
   start_deps_applications(),
   start_web_server(),
-  {ok, _} = erl_proxy_sup:start_link().
+  erl_proxy_sup:start_link().
 
 stop(_State) ->
   ok.
@@ -33,6 +33,7 @@ config(Key) ->
 
 start_deps_applications() ->
   ok = lager:start(),
+  application:set_env(lager, error_logger_redirect, false),
   ok = inets:start(),
   ok = application:start(crypto),
   ok = application:start(sasl),
