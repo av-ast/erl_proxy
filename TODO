@@ -1,4 +1,5 @@
+- add README
 - replace `eredis` with `hierdis`
 - replace `httpc (inets)` with `lhttpc`
-- more tests
-- dialyzer
+- add more tests
+- add dialyzer
