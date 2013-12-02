@@ -47,9 +47,11 @@ start_web_server() ->
     ]}
   ]),
 
-  {ok, _} = cowboy:start_http(http, 100, [{port, config(cowboy_port)}], [
-    {env, [{dispatch, Dispatch}]}
-  ]).
+  {ok, _} = cowboy:start_http(http, erl_proxy_app:config(cowboy_acceptors_num),
+                              [{port, config(cowboy_port)}],
+                              [
+                                {env, [{dispatch, Dispatch}]}
+                              ]).
 
 load_config() ->
   {ok, [Config]} = file:consult(filename:join(["config", "app.config"])),
