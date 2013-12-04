@@ -126,7 +126,10 @@ http_verb_to_atom(Verb) ->
   end.
 
 retry_request(Request) ->
-  case erl_proxy_app:config(retry_requests) of
-    true -> storage:push(Request);
+  RetryAttempts = proplists:get_value(retry_attempts, Request, 0),
+  case RetryAttempts of
+    N when N > 0 ->
+      NewRequest = lists:keyreplace(retry_attempts, 1, Request, {retry_attempts, N-1}),
+      storage:push(NewRequest);
     _ -> ok
   end.
