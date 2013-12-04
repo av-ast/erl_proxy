@@ -121,6 +121,7 @@ http_verb_to_atom(Verb) ->
     "PUT"   -> put;
     "PATCH" -> put;
     "HEAD"  -> head;
+    "DELETE"-> delete;
     _       -> bad_match
   end.
 
