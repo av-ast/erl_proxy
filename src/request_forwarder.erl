@@ -69,13 +69,12 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 
 forward_request(Request) ->
-  Request2 = utils:deep_binary_to_list(Request),
   ForwardURI = erl_proxy_app:config(forward_to),
+  Response = http_request(ForwardURI, Request),
 
-  Response = http_request(ForwardURI, Request2),
   case Response of
-    {ok, {{_HttpVersion, Status, _StatusMessage}, _Headers, _Body}} when Status div 100 =:= 2 ->
-      {ok, Status};
+    {ok, {{StatusCode, _ReasonPhrase}, _Hdrs, _ResponseBody}} when StatusCode div 100 =:= 2 ->
+      {ok, StatusCode};
     {error, Reason} ->
       {request_failed, Reason};
     _ ->
@@ -83,47 +82,25 @@ forward_request(Request) ->
   end.
 
 http_request(ForwardURI, Request) ->
-  Method = http_verb_to_atom(proplists:get_value(method, Request, "GET")),
+  Method = proplists:get_value(method, Request, "GET"),
   Headers = proplists:get_value(headers, Request, []),
-  RequestURI = proplists:get_value(url, Request, ""),
-  ContentType = proplists:get_value(content_type, Request, "text/plain"),
+  RequestURI = binary_to_list(proplists:get_value(url, Request, "")),
   Body = proplists:get_value(body, Request, ""),
-  HTTPOptions = [
-                 {timeout, erl_proxy_app:config(request_timeout)},
-                 {connect_timeout, erl_proxy_app:config(connection_timeout)}
-                ],
+  Timeout = erl_proxy_app:config(request_timeout),
+  Options = [
+             {connect_timeout, erl_proxy_app:config(connection_timeout)}
+            ],
 
   {ok, {FSchema, FUserInfo, FHost, FPort, _FPath, _FQueryString}} = uri:parse(ForwardURI),
   {ok, {_RSchema, _RUserInfo, _RHost, _RPort, RPath, RQueryString}} = uri:parse(RequestURI),
 
   URI = uri:to_string({FSchema, FUserInfo, FHost, FPort, RPath, RQueryString}),
-
   FullHost = lists:flatten(uri:full_host_iolist({http, [], FHost, FPort, [], ""}, [])),
+  Headers2 = lists:keyreplace(<<"host">>, 1, Headers, {<<"host">>, FullHost}),
+  Headers3 = lists:keyreplace(<<"user-agent">>, 1, Headers2, {<<"user-agent">>, erl_proxy_app:config(user_agent)}),
 
-  Headers2 = lists:keyreplace("host", 1, Headers, {"host", FullHost}),
-  Headers3 = lists:keyreplace("user-agent", 1, Headers2, {"user-agent", erl_proxy_app:config(user_agent)}),
-
-  case lists:member(Method, [get, head]) of
-    true ->
-      lager:debug("[REQUEST]: ~p", [[Method, URI, Headers3]]),
-      httpc:request(Method, {URI, Headers3}, HTTPOptions, []);
-    _ ->
-      lager:debug("[REQUEST]: ~p", [[Method, URI, Headers3, Body]]),
-      httpc:request(Method, {URI, Headers3, ContentType, Body}, HTTPOptions, [])
-  end.
-
-%%
-%% @spec http_verb_to_atom(Verb) -> atom() | bad_match
-http_verb_to_atom(Verb) ->
-  case Verb of
-    "GET"   -> get;
-    "POST"  -> post;
-    "PUT"   -> put;
-    "PATCH" -> put;
-    "HEAD"  -> head;
-    "DELETE"-> delete;
-    _       -> bad_match
-  end.
+  lager:debug("[REQUEST]: ~p", [[Method, URI, Headers3, Body]]),
+  lhttpc:request(URI, Method, Headers3, Body, Timeout, Options).
 
 retry_request(Request) ->
   RetryAttempts = proplists:get_value(retry_attempts, Request, 0),

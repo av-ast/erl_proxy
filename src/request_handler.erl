@@ -39,12 +39,10 @@ prepare_request_for_storage(Req) ->
   {Url, _}  = cowboy_req:url(Req),
   {Path, _} = cowboy_req:path(Req),
   {QString, _} = cowboy_req:qs(Req),
-  {ContentType, _} = cowboy_req:header(<<"content-type">>, Req, <<"text/plain">>),
   {Headers, _} = cowboy_req:headers(Req),
   {ok, Body, _} = cowboy_req:body(Req),
 
   [
-   {method,Method}, {url,Url}, {path, Path}, {qstring, QString},
-   {headers,Headers}, {body, Body},{content_type, ContentType},
+   {method,Method}, {url,Url}, {path, Path}, {qstring, QString}, {headers,Headers}, {body, Body},
    {retry_attempts, erl_proxy_app:config(retry_attempts)}
   ].
