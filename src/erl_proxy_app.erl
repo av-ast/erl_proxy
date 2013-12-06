@@ -16,6 +16,7 @@ start() ->
 start(_StartType, _StartArgs) ->
   load_config(),
   start_deps_applications(),
+  application:set_env(lager, error_logger_redirect, false),
   start_web_server(),
   erl_proxy_sup:start_link().
 
