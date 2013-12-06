@@ -2,7 +2,7 @@
 {application, erl_proxy,
  [
   {description, ""},
-  {vsn, "1"},
+  {vsn, "0.1"},
   {registered, []},
   {applications, [
                   kernel,
