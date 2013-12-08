@@ -33,4 +33,7 @@ dialyze: $(PLT_NAME)
 		-Werror_handling -Wunderspecs \
 		ebin
 
-.PHONY: all no_deps full clean test run dialyze
+xref:
+	./rebar xref skip_deps=true
+
+.PHONY: all no_deps full clean test run dialyze xref
