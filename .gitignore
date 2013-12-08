@@ -3,3 +3,4 @@ deps
 log
 erl_crash.dump
 .eunit
+.erl_proxy.plt
