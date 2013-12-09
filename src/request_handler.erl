@@ -1,38 +1,18 @@
 -module(request_handler).
 
-%% Standard callbacks.
--export([init/3]).
--export([
-         allowed_methods/2, content_types_accepted/2,
-         content_types_provided/2, delete_resource/2
-        ]).
+-export([init/3, handle/2, terminate/3]).
 
-%% Custom callbacks.
--export([request_handler/2]).
+init(_Transport, Req, []) ->
+  {ok, Req, undefined}.
 
-init({tcp,http}, _Req, _Opts) ->
-  {upgrade, protocol, cowboy_rest}.
-
-allowed_methods(Req, State) ->
-	{[<<"GET">>, <<"POST">>, <<"PUT">>, <<"PATCH">>, <<"HEAD">>, <<"DELETE">>], Req, State}.
-
-delete_resource(Req, State) ->
-  request_handler(Req, State).
-
-content_types_provided(Req, State) ->
-	{[{<<"application/json">>, request_handler}], Req, State}.
-
-content_types_accepted(Req, State) ->
-	{[{{<<"application">>, <<"x-www-form-urlencoded">>, []}, request_handler}], Req, State}.
-
-request_handler(Req, State) ->
+handle(Req, State) ->
   Request = prepare_request_for_storage(Req),
 
   storage:push(Request),
 
   Req2 = cowboy_req:compact(Req),
   {ok, _} = cowboy_req:reply(erl_proxy_app:config(reply_status), [{<<"connection">>, <<"close">>}], Req2),
-  {halt, Req2, State}.
+  {ok, Req2, State}.
 
 prepare_request_for_storage(Req) ->
   {Method, _} = cowboy_req:method(Req),
@@ -46,3 +26,6 @@ prepare_request_for_storage(Req) ->
    {method,Method}, {url,Url}, {path, Path}, {qstring, QString}, {headers,Headers}, {body, Body},
    {retry_attempts, erl_proxy_app:config(retry_attempts)}
   ].
+
+terminate(_Reason, _Req, _State) ->
+	ok.
