@@ -1,3 +1,2 @@
-- add README
 - replace `eredis` with `hierdis`
 - add more tests
