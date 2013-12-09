@@ -28,7 +28,7 @@ Note: it is recommended to setup this [Vagrant Box](https://github.com/av-ast/er
   $ make run
 ```
 
-## Setting
+## Settings
 
 File `<APP_ROOT>/config/app.config` stores some application specific settings:
 
