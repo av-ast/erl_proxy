@@ -45,3 +45,6 @@ File `<APP_ROOT>/config/app.config` stores some application specific settings:
   {delay_between_requests, 500}               % Delay between forwarded requests (ms)
 ].
 ```
+## Contributing
+
+Project is open for issues and pull requests. Feel free to make one... or more :)
