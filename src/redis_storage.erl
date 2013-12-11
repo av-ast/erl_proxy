@@ -8,8 +8,13 @@
 -export([push/1, pop/0, queue_length/0]).
 
 -record(state, {
-          redis_client :: pid() | undefined
+          redis_client,
+          buffer = [],
+          buf_len = 0
        }).
+
+-define(QUEUE, queue).
+-define(BUF_SIZE, 100).
 
 %% public API
 
@@ -45,19 +50,25 @@ queue_length() ->
 %% gen_server callbacks
 
 handle_call(pop, _From, #state{redis_client = RedisClient} = State) ->
-  Result = case eredis:q(RedisClient, ["LPOP", queue]) of
+  Result = case eredis:q(RedisClient, ["LPOP", ?QUEUE]) of
              {ok, undefined} -> empty_queue;
              {ok, Res} -> binary_to_term(Res)
            end,
   {reply, Result, State};
 handle_call(queue_length, _From, #state{redis_client = RedisClient} = State) ->
-  {ok, Length} = eredis:q(RedisClient, ["LLEN", queue]),
+  {ok, Length} = eredis:q(RedisClient, ["LLEN", ?QUEUE]),
   {reply, binary_to_integer(Length), State};
 handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
-handle_cast({push, Term}, #state{redis_client = RedisClient} = State) ->
-  {ok, _} = eredis:q(RedisClient, ["RPUSH", queue, Term]),
+handle_cast({push, Term}, #state{redis_client = RedisClient, buffer = Buf, buf_len = BufLen} = State) ->
+  if
+    BufLen < ?BUF_SIZE ->
+    Buf2 = [Term|Buf],
+
+    true ->
+  end,
+  {ok, _} = eredis:q(RedisClient, ["RPUSH", ?QUEUE, Term]),
   {noreply, State};
 handle_cast(_Message, State) ->
   {noreply, State}.
