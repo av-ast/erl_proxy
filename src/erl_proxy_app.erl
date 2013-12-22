@@ -4,7 +4,7 @@
 
 %% Application callbacks
 -export([start/2, stop/1]).
--export([start/0, config/0, config/1]).
+-export([start/0, config/1]).
 
 start() ->
   application:start(erl_proxy).
@@ -14,8 +14,6 @@ start() ->
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-  load_config(),
-  start_deps_applications(),
   application:set_env(lager, error_logger_redirect, false),
   start_web_server(),
   erl_proxy_sup:start_link().
@@ -23,29 +21,11 @@ start(_StartType, _StartArgs) ->
 stop(_State) ->
   ok.
 
-config() ->
-  {ok, Config} = application:get_env(?MODULE, config),
-  Config.
-
 config(Key) ->
-  proplists:get_value(Key, config(), undefined).
+  {ok, Value} = application:get_env(erl_proxy, Key),
+  Value.
 
 %% INTERNAL FUNCTIONS
-
-start_deps_applications() ->
-  ok = application:start(syntax_tools),
-  ok = application:start(compiler),
-  ok = application:start(goldrush),
-  ok = application:start(lager),
-  ok = application:start(crypto),
-  ok = application:start(asn1),
-  ok = application:start(public_key),
-  ok = application:start(ssl),
-  ok = application:start(sasl),
-  ok = application:start(ranch),
-  ok = application:start(cowlib),
-  ok = application:start(cowboy),
-  ok = application:start(lhttpc).
 
 start_web_server() ->
   Dispatch = cowboy_router:compile([
@@ -59,7 +39,3 @@ start_web_server() ->
                               [
                                 {env, [{dispatch, Dispatch}]}
                               ]).
-
-load_config() ->
-  {ok, [Config]} = file:consult(filename:join(["config", "app.config"])),
-  application:set_env(?MODULE, config, Config).
