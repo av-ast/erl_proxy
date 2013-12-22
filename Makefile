@@ -1,39 +1,11 @@
-all:
-	./rebar compile
+PROJECT = erl_proxy
 
-no_deps:
-	./rebar compile skip_deps=true
+DEPS = cowboy eredis lhttpc lager uri
 
-full:
-	./rebar get-deps compile
+dep_cowboy = https://github.com/extend/cowboy.git
+dep_lhttpc = https://github.com/esl/lhttpc.git
+dep_lager = https://github.com/basho/lager.git
+dep_eredis = https://github.com/wooga/eredis.git
+dep_uri = https://github.com/av-ast/uri.git
 
-clean:
-	./rebar clean
-
-test:
-	./rebar eunit skip_deps=true
-
-run:
-	erl -pa ebin -pa deps/*/ebin \
-		-s erl_proxy_app -sname erl_proxy_node -smp enable \
-		-lager colored true \
-					 handlers '[{lager_console_backend, debug}]' \
-		-sasl errlog_type error
-
-PLT_NAME=.erl_proxy.plt
-
-$(PLT_NAME):
-	@ERL_LIBS=deps dialyzer --build_plt --output_plt $@ --apps \
-		erts kernel stdlib crypto ssl xmerl syntax_tools \
-		public_key compiler \
-		deps/*/ebin
-
-dialyze: $(PLT_NAME)
-	@dialyzer --plt $(PLT_NAME) --no_native \
-		-Werror_handling -Wunderspecs \
-		ebin
-
-xref:
-	./rebar xref skip_deps=true
-
-.PHONY: all no_deps full clean test run dialyze xref
+include erlang.mk

@@ -1,13 +1,28 @@
-%%-*- mode: erlang -*- 
+%%-*- mode: erlang -*-
 {application, erl_proxy,
  [
-  {description, ""},
+  {description, "Basic HTTP requests forwarder with Redis or in-memory (ETS) persistence."},
   {vsn, "0.1"},
+  {modules, [erl_proxy_sup, ets_storage, redis_storage, request_forwarder, request_handler, storage, utils]},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  lager,
+                  cowboy,
+                  lhttpc,
+                  eredis
                  ]},
   {mod, { erl_proxy_app, []}},
-  {env, []}
+  {env, [
+          {user_agent, "erl_proxy"},
+          {cowboy_port, 8888},
+          {cowboy_acceptors_num, 100},
+          {forward_to, "http://localhost:80"},
+          {retry_attempts, 5},
+          {reply_status, 200},
+          {connection_timeout, 1000},
+          {request_timeout, 5000},
+          {delay_between_requests, 500}
+        ]}
  ]}.
