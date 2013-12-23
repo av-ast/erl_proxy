@@ -30,7 +30,7 @@ Note: it is recommended to setup this [Vagrant Box](https://github.com/av-ast/er
 
 ## Settings
 
-File `<APP_ROOT>/config/app.config` stores some application specific settings:
+File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific settings:
 
 ``` erlang
 [
