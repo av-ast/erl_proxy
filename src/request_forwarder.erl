@@ -1,4 +1,5 @@
 -module(request_forwarder).
+-compile([{parse_transform, lager_transform}]).
 
 -behavior(gen_server).
 
