@@ -22,13 +22,13 @@ In parallel with requests acceptor launches storage queue worker. It monitors pe
 ```
   $ git clone https://github.com/av-ast/erl_proxy.git
   $ cd erl_proxy
-  $ make full
-  $ make run
+  $ make
+  $ ./_rel/bin/erl_proxy start
 ```
 
 ## Settings
 
-File `<APP_ROOT>/config/app.config` stores some application specific settings:
+File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific settings:
 
 ``` erlang
 [
