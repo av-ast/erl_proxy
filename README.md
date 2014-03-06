@@ -26,6 +26,12 @@ In parallel with requests acceptor launches storage queue worker. It monitors pe
   $ ./_rel/bin/erl_proxy start
 ```
 
+In development mode you should run the following:
+
+```
+  $ make no_deps run
+```
+
 ## Settings
 
 File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific settings:
