@@ -17,7 +17,3 @@
 
 ## Tweak GC to run more often
 ##-env ERL_FULLSWEEP_AFTER 10
-
--lager colored true handlers '[{lager_console_backend, debug}]'
-
--sasl errlog_type error
