@@ -4,7 +4,13 @@
 
 %% Application callbacks
 -export([start/2, stop/1]).
--export([start/0, config/1]).
+-export([start/0, start_with_deps/0, config/1]).
+
+start_with_deps() ->
+  ok = lager:start(),
+  Apps = [crypto, asn1, public_key, ssl, lhttpc, ranch, cowlib, cowboy,
+         eredis, inets, uri, sync, erl_proxy],
+  [ok = application:start(App) || App <- Apps].
 
 start() ->
   application:start(erl_proxy).

@@ -8,11 +8,19 @@ dep_lhttpc = https://github.com/esl/lhttpc.git
 dep_uri = https://github.com/av-ast/uri.git
 dep_sync = https://github.com/rustyio/sync.git
 
-# ERLC_OPTS += +'{parse_transform, eunit_autoexport}'
+ERLC_OPTS += +'{parse_transform, lager_transform}'
 
 include erlang.mk
 
 test:
 	./rebar eunit skip_deps=true
 
-.PHONY: all no_deps full clean test run dialyze xref
+no_deps:
+	./rebar compile skip_deps=true
+
+run:
+	erl -pa ebin -pa deps/*/ebin \
+		-config config/sys.config \
+		-sname erl_proxy -s erl_proxy_app start_with_deps
+
+.PHONY: test no_deps run
