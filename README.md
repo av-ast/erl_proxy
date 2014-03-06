@@ -32,6 +32,8 @@ In development mode you should run the following:
   $ make no_deps run
 ```
 
+... and [sync](https://github.com/rustyio/sync) will do all the rest for you.
+
 ## Settings
 
 File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific settings:
