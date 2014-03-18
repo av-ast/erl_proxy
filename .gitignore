@@ -4,7 +4,6 @@ log
 erl_crash.dump
 .eunit
 .erl_proxy.plt
-.erlang.mk.packages.v1
 .rebar
 _rel
 test/*.beam
