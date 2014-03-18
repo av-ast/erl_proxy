@@ -1,2 +1,3 @@
 - replace `eredis` with `hierdis`
 - add more tests
+- make releases with `relx` and remove `erlang.mk`
