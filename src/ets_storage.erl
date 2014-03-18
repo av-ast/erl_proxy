@@ -62,6 +62,8 @@ handle_call(_Message, _From, State) ->
 handle_cast({push, Term}, #state{table = Tab} = State) ->
   ets:insert(Tab, {utils:ts(), Term}),
   {noreply, State};
+handle_cast(stop, State) ->
+  {stop, normal, State};
 handle_cast(_Message, State) ->
   {noreply, State}.
 

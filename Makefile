@@ -21,6 +21,6 @@ no_deps:
 run:
 	erl -pa ebin -pa deps/*/ebin \
 		-config config/sys.config \
-		-sname erl_proxy -s erl_proxy_app start_with_deps
+		-sname erl_proxy -s erl_proxy_app
 
 .PHONY: test no_deps run
