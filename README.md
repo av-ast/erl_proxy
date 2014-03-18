@@ -1,6 +1,8 @@
 erl_proxy
 =========
 
+[![Build Status](https://travis-ci.org/av-ast/erl_proxy.png?branch=master)](https://travis-ci.org/av-ast/erl_proxy)
+
 ## Summary
 
 Basic HTTP requests forwarder with [Redis](http://redis.io) or in-memory (ETS) persistence.
