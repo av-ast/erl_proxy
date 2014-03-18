@@ -21,6 +21,6 @@ clean:
 run:
 	erl -pa ebin -pa deps/*/ebin \
 		-config config/sys.config \
-		-sname erl_proxy -s erl_proxy_app
+		-sname erl_proxy -s erl_proxy_app -s sync go
 
 .PHONY: test get-deps compile no_deps release clean all run

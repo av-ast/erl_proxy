@@ -1,3 +1,2 @@
-- run `sync` app in dev mode
 - replace `eredis` with `hierdis`
 - add more tests
