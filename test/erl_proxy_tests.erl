@@ -17,7 +17,8 @@ erl_proxy_test_() ->
   }.
 
 setup() ->
-  {ok, _} = erl_proxy_app:start().
+  {ok, _} = erl_proxy_app:start(),
+  erl_proxy_app:config(schedule_pool_interval, 500).
 
 teardown(_) ->
   schedule:clear(),
