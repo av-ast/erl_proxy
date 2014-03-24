@@ -13,14 +13,12 @@
          terminate/2,
          code_change/3]).
 
--record(state, { tref }).
-
 start_link() ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
-	{ok, TRef} = timer:send_interval(erl_proxy_app:config(delay_between_requests), process_request),
-  {ok, #state{tref = TRef}}.
+	Timer = erlang:send_after(1, self(), process_request),
+  {ok, Timer}.
 
 handle_call(_Request, _From, State) ->
   {reply, ok, State}.
@@ -28,10 +26,14 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Msg, State) ->
   {noreply, State}.
 
-handle_info(process_request, State) ->
-  case schedule:retrieve() of
+handle_info(process_request, OldTimer) ->
+  erlang:cancel_timer(OldTimer),
+
+  StoredRequest = schedule:retrieve(),
+
+  Timer = case StoredRequest of
     nothing ->
-      ok;
+      erlang:send_after(erl_proxy_app:config(schedule_pool_interval), self(), process_request);
     Request ->
       case forward_request(Request) of
         {ok, Status} ->
@@ -44,9 +46,10 @@ handle_info(process_request, State) ->
         {request_failed, Reason} ->
           lager:debug("[Request failed]: ~p", [Reason]),
           retry_request(Request) % TODO: do we really need to retry request later?
-      end
+      end,
+      erlang:send_after(1, self(), process_request)
   end,
-  {noreply, State};
+  {noreply, Timer};
 
 handle_info(_Info, State) ->
   {noreply, State}.
@@ -54,8 +57,8 @@ handle_info(_Info, State) ->
 %%
 %% @spec terminate(Reason, State) -> void()
 %%--------------------------------------------------------------------
-terminate(_Reason, #state{tref = TRef} = _State) ->
-  timer:cancel(TRef),
+terminate(_Reason, Timer) ->
+  erlang:cancel_timer(Timer),
   ok.
 
 %%

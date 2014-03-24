@@ -26,6 +26,6 @@
           {reply_status, 200},
           {connection_timeout, 1000},
           {request_timeout, 5000},
-          {delay_between_requests, 500}
+          {schedule_pool_interval, 1000}
         ]}
  ]}.

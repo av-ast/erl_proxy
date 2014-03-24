@@ -20,9 +20,11 @@ setup() ->
   {ok, _} = erl_proxy_app:start().
 
 teardown(_) ->
+  schedule:clear(),
   erl_proxy_app:stop().
 
 test_standart_flow() ->
+  schedule:clear(),
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, ["http://localhost/", '_', '_', '_', '_', '_'], {ok, {{200, ""}, [], <<"">>}}),
 
@@ -55,4 +57,4 @@ request_to_proxy() ->
   Status.
 
 calc_timeout(RetryCount) ->
-  RetryCount * erl_proxy_app:config(delay_between_requests) + 100.
+  (RetryCount + 1) * erl_proxy_app:config(schedule_pool_interval).
