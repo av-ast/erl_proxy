@@ -7,7 +7,7 @@ init(_Transport, Req, []) ->
 
 handle(Req, State) ->
   Request = prepare_request_for_storage(Req),
-  storage:push(Request),
+  schedule:add(Request),
 
   {ok, Req2} = cowboy_req:reply(erl_proxy_app:config(reply_status), [{<<"connection">>, <<"close">>}], Req),
   Req3 = cowboy_req:compact(Req2),

@@ -29,8 +29,8 @@ handle_cast(_Msg, State) ->
   {noreply, State}.
 
 handle_info(process_request, State) ->
-  case storage:pop() of
-    empty_queue ->
+  case schedule:retrieve() of
+    nothing ->
       ok;
     Request ->
       case forward_request(Request) of
@@ -107,6 +107,6 @@ retry_request(Request) ->
   case RetryAttempts of
     N when N > 0 ->
       NewRequest = lists:keyreplace(retry_attempts, 1, Request, {retry_attempts, N-1}),
-      storage:push(NewRequest);
+      schedule:add(NewRequest);
     _ -> ok
   end.
