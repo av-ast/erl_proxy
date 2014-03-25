@@ -62,13 +62,16 @@ length() ->
 
 handle_call(clear, _From, #state{redis_client = RedisClient} = State) ->
   {ok, _} = eredis:q(RedisClient, ["DEL", queue]),
+  {ok, _} = eredis:q(RedisClient, ["DEL", hash]),
   {reply, ok, State};
 
 handle_call({retrieve, Timestamp}, _From, #state{redis_client = RedisClient} = State) ->
   Result = case eredis:q(RedisClient, ["ZRANGEBYSCORE", queue, "-inf", Timestamp, "LIMIT", 0, 1]) of
     {ok, []} -> nothing;
-    {ok, [Res]} ->
-      {ok, _} = eredis:q(RedisClient, ["ZREM", queue, Res]),
+    {ok, [TermId]} ->
+      {ok, <<"1">>} = eredis:q(RedisClient, ["ZREM", queue, TermId]),
+      {ok, Res} = eredis:q(RedisClient, ["HGET", hash, TermId]),
+      {ok, <<"1">>} = eredis:q(RedisClient, ["HDEL", hash, TermId]),
       binary_to_term(Res)
   end,
 
@@ -80,7 +83,9 @@ handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
 handle_cast({add, Term, PerformAt}, #state{redis_client = RedisClient} = State) ->
-  {ok, _} = eredis:q(RedisClient, ["ZADD", queue, PerformAt, Term]),
+  TermId = utils:ts(),
+  {ok, <<"1">>} = eredis:q(RedisClient, ["HSET", hash, TermId, Term]),
+  {ok, <<"1">>} = eredis:q(RedisClient, ["ZADD", queue, PerformAt, TermId]),
   {noreply, State};
 handle_cast(stop, State) ->
   {stop, normal, State};
