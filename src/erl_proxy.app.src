@@ -25,7 +25,7 @@
           {retry_attempts, 5},
 
           %% coefficient * (retry_count + 1)^power
-          {delay_formula_coefficient, 200},
+          {delay_formula_coefficient, 100},
           {delay_formula_power, 4},
 
           {reply_status, 200},

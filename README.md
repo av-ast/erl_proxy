@@ -47,6 +47,12 @@ File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific setting
   {cowboy_acceptors_num, 100},                % Number of Cowboy requests acceptors
   {forward_to, "http://your.site.com:4567"},  % Original requests destination URL
   {retry_attempts, 5},                        % Number of retry attempts for failed forwarded requests
+
+  % erl_proxy will retry failures with an exponential backoff using the formula
+  % coefficient * (retry_count + 1)^power (i.e. 100, 1600, 8100, 25600, 62500, ... seconds).
+  % It will perform 5 retries over approximately 1 day.
+  {delay_formula_coefficient, 100},           % First retry delay(sec)
+  {delay_formula_power, 4},
   {reply_status, 200},                        % Reply status for incoming clients' requests
   {connection_timeout, 1000},                 % Connection timeout for forwarded requests (ms)
   {request_timeout, 5000},                    % Timeout of response for forwarded requests (ms)
