@@ -61,31 +61,31 @@ length() ->
 %% gen_server callbacks
 
 handle_call(clear, _From, #state{redis_client = RedisClient} = State) ->
-  {ok, _} = eredis:q(RedisClient, ["DEL", queue]),
-  {ok, _} = eredis:q(RedisClient, ["DEL", hash]),
+  {ok, _} = eredis:q(RedisClient, ["DEL", sorted_set_key_name()]),
+  {ok, _} = eredis:q(RedisClient, ["DEL", hash_key_name()]),
   {reply, ok, State};
 
 handle_call({retrieve, Timestamp}, _From, #state{redis_client = RedisClient} = State) ->
-  Result = case eredis:q(RedisClient, ["ZRANGEBYSCORE", queue, "-inf", Timestamp, "LIMIT", 0, 1]) of
+  Result = case eredis:q(RedisClient, ["ZRANGEBYSCORE", sorted_set_key_name(), "-inf", Timestamp, "LIMIT", 0, 1]) of
     {ok, []} -> nothing;
     {ok, [TermId]} ->
-      {ok, <<"1">>} = eredis:q(RedisClient, ["ZREM", queue, TermId]),
-      {ok, Res} = eredis:q(RedisClient, ["HGET", hash, TermId]),
-      {ok, <<"1">>} = eredis:q(RedisClient, ["HDEL", hash, TermId]),
+      {ok, <<"1">>} = eredis:q(RedisClient, ["ZREM", sorted_set_key_name(), TermId]),
+      {ok, Res} = eredis:q(RedisClient, ["HGET", hash_key_name(), TermId]),
+      {ok, <<"1">>} = eredis:q(RedisClient, ["HDEL", hash_key_name(), TermId]),
       binary_to_term(Res)
   end,
 
   {reply, Result, State};
 handle_call(length, _From, #state{redis_client = RedisClient} = State) ->
-  {ok, Length} = eredis:q(RedisClient, ["ZCOUNT", queue, "-inf", "+inf"]),
+  {ok, Length} = eredis:q(RedisClient, ["ZCOUNT", sorted_set_key_name(), "-inf", "+inf"]),
   {reply, binary_to_integer(Length), State};
 handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
 handle_cast({add, Term, PerformAt}, #state{redis_client = RedisClient} = State) ->
   TermId = utils:ts(),
-  {ok, <<"1">>} = eredis:q(RedisClient, ["HSET", hash, TermId, Term]),
-  {ok, <<"1">>} = eredis:q(RedisClient, ["ZADD", queue, PerformAt, TermId]),
+  {ok, <<"1">>} = eredis:q(RedisClient, ["HSET", hash_key_name(), TermId, Term]),
+  {ok, <<"1">>} = eredis:q(RedisClient, ["ZADD", sorted_set_key_name(), PerformAt, TermId]),
   {noreply, State};
 handle_cast(stop, State) ->
   {stop, normal, State};
@@ -100,3 +100,9 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVersion, State, _Extra) ->
   {ok, State}.
+
+hash_key_name() ->
+  "erl_proxy" ++ ":" ++ "hash".
+
+sorted_set_key_name() ->
+  "erl_proxy" ++ ":" ++ "sorted_set".
