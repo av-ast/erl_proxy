@@ -17,6 +17,7 @@
                  ]},
   {mod, { erl_proxy_app, []}},
   {env, [
+          {redis, [{host, "127.0.0.1"}, {port, 6379}, {namespace, "erl_proxy"}]},
           {user_agent, "erl_proxy"},
           {cowboy_port, 8888},
           {cowboy_acceptors_num, 100},

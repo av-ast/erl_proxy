@@ -42,6 +42,10 @@ File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific setting
 
 ``` erlang
 [
+  {redis, [
+    {host, "127.0.0.1"},                      % Redis host
+    {port, 6379},                             % Redis port
+    {namespace, "erl_proxy"}]},               % Redis namespace
   {user_agent, "erl_proxy"},                  % User-Agent for forwarded requests
   {cowboy_port, 8888},                        % Cowboy listeners' port
   {cowboy_acceptors_num, 100},                % Number of Cowboy requests acceptors
