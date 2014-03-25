@@ -19,7 +19,7 @@ erl_proxy_test_() ->
 setup() ->
   {ok, _} = erl_proxy_app:start(),
   erl_proxy_app:config(schedule_pool_interval, 500),
-  erl_proxy_app:config(delay_formula_coefficient, 1),
+  erl_proxy_app:config(delay_formula, [{coefficient, 1}, {power, 0}]),
   erl_proxy_app:config(forward_to, "http://localhost/").
 
 teardown(_) ->

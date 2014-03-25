@@ -118,8 +118,9 @@ retry_request(Request) ->
   end.
 
 calc_delay(RetryCount) ->
-  Coefficient = erl_proxy_app:config(delay_formula_coefficient),
-  Power = erl_proxy_app:config(delay_formula_power),
+  Formula = erl_proxy_app:config(delay_formula),
+  Coefficient = proplists:get_value(coefficient, Formula),
+  Power = proplists:get_value(power, Formula),
 
   DelayInSec = round(Coefficient * math:pow(RetryCount + 1, Power)),
   DelayInSec * 1000000.
