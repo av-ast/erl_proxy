@@ -24,7 +24,7 @@ prepare_request_for_storage(Req) ->
 
   [
    {method,Method}, {url,Url}, {path, Path}, {qstring, QString}, {headers,Headers}, {body, Body},
-   {retry_attempts, erl_proxy_app:config(retry_attempts)}
+   {retry_count, 0}
   ].
 
 terminate(_Reason, _Req, _State) ->

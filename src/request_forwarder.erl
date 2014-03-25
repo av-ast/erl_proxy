@@ -106,10 +106,20 @@ http_request(ForwardURI, Request) ->
   lhttpc:request(URI, Method, Headers3, Body, Timeout, Options).
 
 retry_request(Request) ->
-  RetryAttempts = proplists:get_value(retry_attempts, Request, 0),
-  case RetryAttempts of
-    N when N > 0 ->
-      NewRequest = lists:keyreplace(retry_attempts, 1, Request, {retry_attempts, N-1}),
-      schedule:add(NewRequest);
+  RetryCount = proplists:get_value(retry_count, Request, 0),
+  RetryAttempts = erl_proxy_app:config(retry_attempts),
+
+  case RetryCount of
+    N when N < RetryAttempts ->
+      NewRequest = lists:keyreplace(retry_count, 1, Request, {retry_count, N + 1}),
+      PerformAt = utils:ts() + calc_delay(N),
+      schedule:add(NewRequest, PerformAt);
     _ -> ok
   end.
+
+calc_delay(RetryCount) ->
+  Coefficient = erl_proxy_app:config(delay_formula_coefficient),
+  Power = erl_proxy_app:config(delay_formula_power),
+
+  DelayInSec = round(Coefficient * math:pow(RetryCount + 1, Power)),
+  DelayInSec * 1000000.

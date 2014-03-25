@@ -23,6 +23,11 @@
           {cowboy_acceptors_num, 100},
           {forward_to, "http://localhost:80"},
           {retry_attempts, 5},
+
+          %% coefficient * (retry_count + 1)^power
+          {delay_formula_coefficient, 200},
+          {delay_formula_power, 4},
+
           {reply_status, 200},
           {connection_timeout, 1000},
           {request_timeout, 5000},
