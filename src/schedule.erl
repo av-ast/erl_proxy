@@ -3,27 +3,24 @@
 
 -author("av.astafyev@gmail.com").
 
--export([start_link/0, start_link/1]).
+-export([start_link/1]).
 -export([init/1, handle_call/3, handle_cast/2, terminate/2, handle_info/2, code_change/3, stop/0]).
 -export([clear/0, add/1, add/2, retrieve/0, retrieve/1, length/0]).
 
 -record(state, {
           redis_client :: pid() | undefined,
-          redis_namespace = "erl_proxy"
+          redis_namespace :: list()
        }).
 
 %% public API
-
-start_link() ->
-  start_link([]).
 
 start_link(Args) ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, Args, []).
 
 init(Args) ->
-  Host = proplists:get_value(host, Args, "127.0.0.1"),
-  Port = proplists:get_value(port, Args, 6379),
-  Namespace = proplists:get_value(namespace, Args, "erl_proxy"),
+  Host = proplists:get_value(host, Args),
+  Port = proplists:get_value(port, Args),
+  Namespace = proplists:get_value(namespace, Args),
   {ok, RedisClient} = hierdis:connect(Host, Port),
   {ok, #state{redis_client = RedisClient, redis_namespace = Namespace}}.
 
@@ -91,8 +88,8 @@ handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
 handle_cast({add, Term, PerformAt}, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
-  TermIdStr = integer_to_list(utils:ts()),
   PerformAtStr = integer_to_list(PerformAt),
+  TermIdStr = utils:ts_str(),
   {ok, 1} = hierdis:command(RedisClient, ["HSET", hash_key_name(Namespace), TermIdStr, Term]),
   {ok, 1} = hierdis:command(RedisClient, ["ZADD", sorted_set_key_name(Namespace), PerformAtStr, TermIdStr]),
   {noreply, State};

@@ -19,7 +19,7 @@ schedule_test_() ->
   }.
 
 setup() ->
-  {ok, _} = schedule:start_link(),
+  {ok, _} = schedule:start_link([{host, "127.0.0.1"}, {port, 6379}, {namespace, "erl_proxy"}]),
   schedule:clear().
 
 teardown(_) ->

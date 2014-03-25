@@ -5,7 +5,7 @@ erl_proxy
 
 ## Summary
 
-Basic HTTP requests forwarder with [Redis](http://redis.io) or in-memory (ETS) persistence.
+Basic HTTP requests forwarder with [Redis](http://redis.io).
 
 ## Details
 

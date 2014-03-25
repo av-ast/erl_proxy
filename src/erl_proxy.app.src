@@ -11,6 +11,7 @@
                   stdlib,
                   lager,
                   lhttpc,
+                  hierdis,
                   cowboy,
                   inets,
                   uri
@@ -34,7 +35,6 @@
           {reply_status, 200},
           {connection_timeout, 1000},
           {request_timeout, 5000},
-          {schedule_pool_interval, 15000},
-          {redis_namespace, "erl_proxy"}
+          {schedule_pool_interval, 15000}
         ]}
  ]}.
