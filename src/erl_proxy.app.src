@@ -12,7 +12,6 @@
                   lager,
                   lhttpc,
                   cowboy,
-                  eredis,
                   inets,
                   uri
                  ]},
