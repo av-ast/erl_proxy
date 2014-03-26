@@ -65,21 +65,23 @@ length() ->
 %% gen_server callbacks
 
 handle_call(clear, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
-  {ok, _} = hierdis:command(RedisClient, ["DEL", sorted_set_key_name(Namespace)]),
-  {ok, _} = hierdis:command(RedisClient, ["DEL", hash_key_name(Namespace)]),
+  Commands = [["DEL", sorted_set_key_name(Namespace)],
+              ["DEL", hash_key_name(Namespace)]],
+  {ok, _} = hierdis:transaction(RedisClient, Commands),
   {reply, ok, State};
 
 handle_call({retrieve, Timestamp}, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
   TimestampStr = integer_to_list(Timestamp),
-  Result = case hierdis:command(RedisClient, ["ZRANGEBYSCORE", sorted_set_key_name(Namespace), "-inf", TimestampStr, "LIMIT", "0", "1"]) of
+  ResultForTermId = hierdis:command(RedisClient, ["ZRANGEBYSCORE", sorted_set_key_name(Namespace), "-inf", TimestampStr, "LIMIT", "0", "1"]),
+  Result = case ResultForTermId of
     {ok, []} -> nothing;
     {ok, [TermIdStr]} ->
-      {ok, 1} = hierdis:command(RedisClient, ["ZREM", sorted_set_key_name(Namespace), TermIdStr]),
-      {ok, Res} = hierdis:command(RedisClient, ["HGET", hash_key_name(Namespace), TermIdStr]),
-      {ok, 1} = hierdis:command(RedisClient, ["HDEL", hash_key_name(Namespace), TermIdStr]),
-      binary_to_term(Res)
+      Commands = [["HGET", hash_key_name(Namespace), TermIdStr],
+                  ["HDEL", hash_key_name(Namespace), TermIdStr],
+                  ["ZREM", sorted_set_key_name(Namespace), TermIdStr]],
+      {ok, [BinaryTerm | _OtherResults]} = hierdis:transaction(RedisClient, Commands),
+      binary_to_term(BinaryTerm)
   end,
-
   {reply, Result, State};
 handle_call(length, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
   {ok, Length} = hierdis:command(RedisClient, ["ZCARD", sorted_set_key_name(Namespace)]),
@@ -87,11 +89,12 @@ handle_call(length, _From, #state{redis_client = RedisClient, redis_namespace = 
 handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
-handle_cast({add, Term, PerformAt}, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
+handle_cast({add, BinaryTerm, PerformAt}, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
   PerformAtStr = integer_to_list(PerformAt),
   TermIdStr = utils:ts_str(),
-  {ok, 1} = hierdis:command(RedisClient, ["HSET", hash_key_name(Namespace), TermIdStr, Term]),
-  {ok, 1} = hierdis:command(RedisClient, ["ZADD", sorted_set_key_name(Namespace), PerformAtStr, TermIdStr]),
+  Commands = [["HSET", hash_key_name(Namespace), TermIdStr, BinaryTerm],
+              ["ZADD", sorted_set_key_name(Namespace), PerformAtStr, TermIdStr]],
+  {ok, _} = hierdis:transaction(RedisClient, Commands),
   {noreply, State};
 handle_cast(stop, State) ->
   {stop, normal, State};
