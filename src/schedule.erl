@@ -82,7 +82,7 @@ handle_call({retrieve, Timestamp}, _From, #state{redis_client = RedisClient, red
 
   {reply, Result, State};
 handle_call(length, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
-  {ok, Length} = hierdis:command(RedisClient, ["ZCOUNT", sorted_set_key_name(Namespace), "-inf", "+inf"]),
+  {ok, Length} = hierdis:command(RedisClient, ["ZCARD", sorted_set_key_name(Namespace)]),
   {reply, Length, State};
 handle_call(_Message, _From, State) ->
   {reply, error, State}.
