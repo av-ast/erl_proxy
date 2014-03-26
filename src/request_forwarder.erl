@@ -76,7 +76,7 @@ forward_request(Request) ->
   Response = http_request(ForwardURI, Request),
 
   case Response of
-    {ok, {{StatusCode, _ReasonPhrase}, _Hdrs, _ResponseBody}} when StatusCode div 100 =:= 2 ->
+    {ok, {{StatusCode, _ReasonPhrase}, _Hdrs, _ResponseBody}} when StatusCode div 100 =/= 5 ->
       {ok, StatusCode};
     {error, Reason} ->
       {request_failed, Reason};
