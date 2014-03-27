@@ -1,3 +1,8 @@
 language: erlang
 otp_release:
   - R16B03
+services:
+  - redis-server
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq libhiredis-dev

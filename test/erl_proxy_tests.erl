@@ -17,14 +17,19 @@ erl_proxy_test_() ->
   }.
 
 setup() ->
-  {ok, _} = erl_proxy_app:start().
+  {ok, _} = erl_proxy_app:start(),
+  erl_proxy_app:config(schedule_pool_interval, 100),
+  erl_proxy_app:config(delay_formula, [{coefficient, 0}, {power, 0}]),
+  erl_proxy_app:config(forward_to, "http://localhost/").
 
 teardown(_) ->
+  schedule:clear(),
   erl_proxy_app:stop().
 
 test_standart_flow() ->
+  schedule:clear(),
   ok = meck:new(lhttpc),
-  ok = meck:expect(lhttpc, request, ["http://localhost/", '_', '_', '_', '_', '_'], {ok, {{200, ""}, [], <<"">>}}),
+  ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{200, ""}, [], <<"">>}}),
 
   Status = ?MODULE:request_to_proxy(),
   ?assertEqual(200, Status),
@@ -36,14 +41,18 @@ test_standart_flow() ->
 
 test_retry() ->
   ok = meck:new(lhttpc),
-  ResponseSeq = meck:seq([{ok, {{500, ""}, [], <<"">>}},
-                          {ok, {{200, ""}, [], <<"">>}}]),
-  ok = meck:expect(lhttpc, request, ["http://localhost/", '_', '_', '_', '_', '_'], ResponseSeq),
+  Responses = [
+    {error, "Some Reason"},
+    {ok, {{500, ""}, [], <<"">>}},
+    {ok, {{200, ""}, [], <<"">>}}
+  ],
+
+  ok = meck:expect(lhttpc, request, lhttpc_request_ags(), meck:seq(Responses)),
 
   Status = ?MODULE:request_to_proxy(),
   ?assertEqual(200, Status),
 
-  RetryCount = 2,
+  RetryCount = length(Responses),
   Timeout = calc_timeout(RetryCount),
   ok = meck:wait(RetryCount, lhttpc, request, 6, Timeout),
   meck:unload(lhttpc).
@@ -54,5 +63,8 @@ request_to_proxy() ->
   {ok, {{_, Status, _}, _, _}} = httpc:request(Url),
   Status.
 
+ lhttpc_request_ags() ->
+  [erl_proxy_app:config(forward_to), '_', '_', '_', '_', '_'].
+
 calc_timeout(RetryCount) ->
-  RetryCount * erl_proxy_app:config(delay_between_requests) + 100.
+  (RetryCount + 1) * erl_proxy_app:config(schedule_pool_interval).

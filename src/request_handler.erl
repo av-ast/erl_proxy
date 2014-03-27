@@ -7,7 +7,7 @@ init(_Transport, Req, []) ->
 
 handle(Req, State) ->
   Request = prepare_request_for_storage(Req),
-  storage:push(Request),
+  schedule:add(Request),
 
   {ok, Req2} = cowboy_req:reply(erl_proxy_app:config(reply_status), [{<<"connection">>, <<"close">>}], Req),
   Req3 = cowboy_req:compact(Req2),
@@ -22,10 +22,13 @@ prepare_request_for_storage(Req) ->
   {Headers, _} = cowboy_req:headers(Req),
   {ok, Body, _} = cowboy_req:body(Req),
 
-  [
+
+  NewReq = [
    {method,Method}, {url,Url}, {path, Path}, {qstring, QString}, {headers,Headers}, {body, Body},
-   {retry_attempts, erl_proxy_app:config(retry_attempts)}
-  ].
+   {retry_count, 0}
+  ],
+
+  utils:deep_binary_to_list(NewReq).
 
 terminate(_Reason, _Req, _State) ->
 	ok.

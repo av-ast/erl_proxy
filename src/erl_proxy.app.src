@@ -11,21 +11,30 @@
                   stdlib,
                   lager,
                   lhttpc,
+                  hierdis,
                   cowboy,
-                  eredis,
                   inets,
                   uri
                  ]},
   {mod, { erl_proxy_app, []}},
   {env, [
+          {redis, [
+            {host, "127.0.0.1"},
+            {port, 6379},
+            {namespace, "erl_proxy"}
+          ]},
           {user_agent, "erl_proxy"},
           {cowboy_port, 8888},
           {cowboy_acceptors_num, 100},
           {forward_to, "http://localhost:80"},
           {retry_attempts, 5},
+          {delay_formula, [
+            {coefficient, 100},
+            {power, 4}
+          ]},
           {reply_status, 200},
           {connection_timeout, 1000},
           {request_timeout, 5000},
-          {delay_between_requests, 500}
+          {schedule_pool_interval, 15000}
         ]}
  ]}.

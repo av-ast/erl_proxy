@@ -4,7 +4,7 @@
 
 %% Application callbacks
 -export([start/2, stop/1]).
--export([start/0, stop/0, config/1]).
+-export([start/0, stop/0, config/1, config/2]).
 
 start() ->
   {ok, _} = application:ensure_all_started(erl_proxy).
@@ -28,6 +28,9 @@ stop(_State) ->
 config(Key) ->
   {ok, Value} = application:get_env(erl_proxy, Key),
   Value.
+
+config(Key, Value) ->
+  application:set_env(erl_proxy, Key, Value).
 
 %% INTERNAL FUNCTIONS
 

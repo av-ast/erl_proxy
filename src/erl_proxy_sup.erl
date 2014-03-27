@@ -11,12 +11,7 @@
 
 %% Helper macro for declaring children of supervisor
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
-
--ifdef(TEST).
--define(STORAGE_BACKEND, ets_storage).
--else.
--define(STORAGE_BACKEND, redis_storage).
--endif.
+-define(CHILD_WITH_ARGS(I, Args, Type), {I, {I, start_link, [Args]}, permanent, 5000, Type, [I]}).
 
 %% ===================================================================
 %% API functions
@@ -31,7 +26,7 @@ start_link() ->
 
 init([]) ->
   Children = [
-              ?CHILD(?STORAGE_BACKEND, worker),
+              ?CHILD_WITH_ARGS(schedule, erl_proxy_app:config(redis), worker),
               ?CHILD(request_forwarder, worker)
              ],
   {ok, { {one_for_one, 5, 10}, Children} }.
