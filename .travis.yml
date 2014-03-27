@@ -1,3 +1,5 @@
 language: erlang
 otp_release:
   - R16B03
+services:
+  - redis-server
