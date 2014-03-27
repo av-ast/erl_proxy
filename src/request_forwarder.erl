@@ -87,7 +87,7 @@ forward_request(Request) ->
 http_request(ForwardURI, Request) ->
   Method = proplists:get_value(method, Request, "GET"),
   Headers = proplists:get_value(headers, Request, []),
-  RequestURI = binary_to_list(proplists:get_value(url, Request, "")),
+  RequestURI = proplists:get_value(url, Request, ""),
   Body = proplists:get_value(body, Request, ""),
   Timeout = erl_proxy_app:config(request_timeout),
   Options = [

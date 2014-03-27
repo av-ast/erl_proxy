@@ -22,10 +22,13 @@ prepare_request_for_storage(Req) ->
   {Headers, _} = cowboy_req:headers(Req),
   {ok, Body, _} = cowboy_req:body(Req),
 
-  [
+
+  NewReq = [
    {method,Method}, {url,Url}, {path, Path}, {qstring, QString}, {headers,Headers}, {body, Body},
    {retry_count, 0}
-  ].
+  ],
+
+  utils:deep_binary_to_list(NewReq).
 
 terminate(_Reason, _Req, _State) ->
 	ok.
