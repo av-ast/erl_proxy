@@ -1,5 +1,5 @@
 -module(schedule).
--behavior([gen_server]).
+-behavior(gen_server).
 
 -author("av.astafyev@gmail.com").
 
