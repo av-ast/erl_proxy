@@ -13,10 +13,10 @@ no_deps:
 	./rebar compile skip_deps=true
 
 release:
-	./relx
+	./rebar generate
 
 clean:
-	rm -rf ebin deps _rel
+	rm -rf ebin deps rel/erl_proxy
 
 run:
 	erl -pa ebin -pa deps/*/ebin \

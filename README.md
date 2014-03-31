@@ -38,7 +38,7 @@ In development mode you should run the following:
 
 ## Settings
 
-File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific settings:
+File `<APP_ROOT>/src/erl_proxy.app.src` or `<RELEASE_ROOT>/etc/app.config` stores some application specific settings:
 
 ``` erlang
 [
@@ -64,6 +64,7 @@ File `<APP_ROOT>/src/erl_proxy.app.src` stores some application specific setting
   {delay_between_requests, 500}               % Delay between forwarded requests (ms)
 ].
 ```
+
 ## Contributing
 
 Project is open for issues and pull requests. Feel free to make one... or more :)
