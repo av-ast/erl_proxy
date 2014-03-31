@@ -18,6 +18,7 @@ In parallel with requests acceptor launches storage queue worker. It monitors pe
 
 * Erlang R16B02 (erts-5.10.3) or higher
 * Redis server v2.6.15 or higher
+* libhiredis-dev
 
 ## How To Build and Run
 
