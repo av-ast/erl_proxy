@@ -66,6 +66,21 @@ File `<APP_ROOT>/src/erl_proxy.app.src` or `<RELEASE_ROOT>/etc/app.config` store
 ].
 ```
 
+## Api
+
+Get queue length:
+
+``` bash
+curl -H "Accept: application/json" localhost:8888/schedule
+{"length":0}
+```
+
+Clear queue:
+
+``` bash
+curl -X DELETE localhost:8888/schedule
+```
+
 ## Contributing
 
 Project is open for issues and pull requests. Feel free to make one... or more :)
