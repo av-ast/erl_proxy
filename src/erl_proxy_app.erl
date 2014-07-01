@@ -37,6 +37,7 @@ config(Key, Value) ->
 start_web_server() ->
   Dispatch = cowboy_router:compile([
     {'_', [
+      {"/schedule", schedule_handler, []},
       {'_', request_handler, []}
     ]}
   ]),
