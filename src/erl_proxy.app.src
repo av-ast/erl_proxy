@@ -23,6 +23,9 @@
             {port, 6379},
             {namespace, "erl_proxy"}
           ]},
+          {schedule, [
+            {compression_level, 0}
+          ]},
           {user_agent, "erl_proxy"},
           {cowboy_port, 8888},
           {cowboy_acceptors_num, 100},
