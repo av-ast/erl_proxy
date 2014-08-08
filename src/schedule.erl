@@ -9,7 +9,8 @@
 
 -record(state, {
           redis_client :: pid() | undefined,
-          redis_namespace :: list()
+          redis_namespace :: list(),
+          compression_level :: integer()
        }).
 
 %% public API
@@ -21,8 +22,9 @@ init(Args) ->
   Host = proplists:get_value(host, Args),
   Port = proplists:get_value(port, Args),
   Namespace = proplists:get_value(namespace, Args),
+  CompressionLevel = proplists:get_value(compression_level, Args, 0),
   {ok, RedisClient} = hierdis:connect(Host, Port),
-  {ok, #state{redis_client = RedisClient, redis_namespace = Namespace}}.
+  {ok, #state{redis_client = RedisClient, redis_namespace = Namespace, compression_level = CompressionLevel}}.
 
 stop() ->
   gen_server:cast(?MODULE, stop).
@@ -87,9 +89,9 @@ handle_call(length, _From, #state{redis_client = RedisClient, redis_namespace = 
 handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
-handle_cast({add, Term, PerformAt}, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
+handle_cast({add, Term, PerformAt}, #state{redis_client = RedisClient, redis_namespace = Namespace, compression_level = CompressionLevel} = State) ->
   PerformAtStr = integer_to_list(PerformAt),
-  BinaryData = term_to_binary(Term),
+  BinaryData = term_to_binary(Term, [{compressed, CompressionLevel}]),
   TermIdStr = utils:ts_str(),
   Commands = [["HSET", hash_key_name(Namespace), TermIdStr, BinaryData],
               ["ZADD", sorted_set_key_name(Namespace), PerformAtStr, TermIdStr]],

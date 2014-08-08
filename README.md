@@ -47,6 +47,8 @@ File `<APP_ROOT>/src/erl_proxy.app.src` or `<RELEASE_ROOT>/etc/app.config` store
     {host, "127.0.0.1"},                      % Redis host
     {port, 6379},                             % Redis port
     {namespace, "erl_proxy"}]},               % Redis namespace
+  {schedule, [
+    {compression_level, 1}]},                 % Compression level for stored requests. Default value is 0 i.e. without compression.
   {user_agent, "erl_proxy"},                  % User-Agent for forwarded requests
   {cowboy_port, 8888},                        % Cowboy listeners' port
   {cowboy_acceptors_num, 100},                % Number of Cowboy requests acceptors
