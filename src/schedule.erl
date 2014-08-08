@@ -41,10 +41,8 @@ add(Term) ->
 
 %% @spec add(Term, PerformAt) -> ok
 %%
-add(Term, PerformAt) when is_binary(Term) ->
-  gen_server:cast(?MODULE, {add, Term, PerformAt});
 add(Term, PerformAt) ->
-  add(term_to_binary(Term), PerformAt).
+  gen_server:cast(?MODULE, {add, Term, PerformAt}).
 
 %% @spec retrieve() -> term() | nothing
 %%
@@ -79,8 +77,8 @@ handle_call({retrieve, Timestamp}, _From, #state{redis_client = RedisClient, red
       Commands = [["HGET", hash_key_name(Namespace), TermIdStr],
                   ["HDEL", hash_key_name(Namespace), TermIdStr],
                   ["ZREM", sorted_set_key_name(Namespace), TermIdStr]],
-      {ok, [BinaryTerm | _OtherResults]} = hierdis:transaction(RedisClient, Commands),
-      binary_to_term(BinaryTerm)
+      {ok, [BinaryData | _OtherResults]} = hierdis:transaction(RedisClient, Commands),
+      binary_to_term(BinaryData)
   end,
   {reply, Result, State};
 handle_call(length, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
@@ -89,10 +87,11 @@ handle_call(length, _From, #state{redis_client = RedisClient, redis_namespace = 
 handle_call(_Message, _From, State) ->
   {reply, error, State}.
 
-handle_cast({add, BinaryTerm, PerformAt}, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
+handle_cast({add, Term, PerformAt}, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
   PerformAtStr = integer_to_list(PerformAt),
+  BinaryData = term_to_binary(Term),
   TermIdStr = utils:ts_str(),
-  Commands = [["HSET", hash_key_name(Namespace), TermIdStr, BinaryTerm],
+  Commands = [["HSET", hash_key_name(Namespace), TermIdStr, BinaryData],
               ["ZADD", sorted_set_key_name(Namespace), PerformAtStr, TermIdStr]],
   {ok, _} = hierdis:transaction(RedisClient, Commands),
   {noreply, State};
