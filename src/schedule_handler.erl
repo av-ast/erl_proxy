@@ -12,7 +12,7 @@ content_types_provided(Req, State) ->
   {[{<<"application/json">>, get_json}], Req, State}.
 
 get_json(Req, State) ->
-  Json = "{\"length\":" ++ integer_to_list(schedule:length()) ++ "}",
+  Json = jsx:encode([{length, schedule:length()}]),
   {Json, Req, State}.
 
 delete_resource(Req, State) ->
