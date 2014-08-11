@@ -38,6 +38,7 @@
           {reply_status, 200},
           {connection_timeout, 1000},
           {request_timeout, 5000},
-          {schedule_pool_interval, 15000}
+          {schedule_pool_interval, 15000},
+          {max_rpm_per_host, 500}
         ]}
  ]}.

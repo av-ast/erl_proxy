@@ -1,10 +1,14 @@
 -module(utils).
 
--export([ts/0, ts_str/0, deep_binary_to_list/1]).
+-export([ts/0, unix_ts/0, ts_str/0, deep_binary_to_list/1]).
 
 ts() ->
   {Megasecs, Secs, Microsecs} = now(),
   Microsecs + 1000000 * (Secs + 1000000 * Megasecs).
+
+unix_ts() ->
+  {Megasecs, Secs, _} = now(),
+  Megasecs * 1000000 + Secs.
 
 ts_str() ->
   integer_to_list(ts()).

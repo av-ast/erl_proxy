@@ -20,10 +20,12 @@ setup() ->
   {ok, _} = erl_proxy_app:start(),
   erl_proxy_app:config(schedule_pool_interval, 1000),
   erl_proxy_app:config(delay_formula, [{coefficient, 0}, {power, 0}]),
-  erl_proxy_app:config(forward_to, "http://localhost/").
+  erl_proxy_app:config(forward_to, "http://localhost/"),
+  erl_proxy_app:config(max_rpm_per_host, 500).
 
 teardown(_) ->
   schedule:clear(),
+  statistics:clear(),
   erl_proxy_app:stop().
 
 test_get() ->

@@ -64,7 +64,8 @@ File `<APP_ROOT>/src/erl_proxy.app.src` or `<RELEASE_ROOT>/etc/app.config` store
   {reply_status, 200},                        % Reply status for incoming clients' requests
   {connection_timeout, 1000},                 % Connection timeout for forwarded requests (ms)
   {request_timeout, 5000},                    % Timeout of response for forwarded requests (ms)
-  {delay_between_requests, 500}               % Delay between forwarded requests (ms)
+  {delay_between_requests, 500},              % Delay between forwarded requests (ms)
+  {max_rpm_per_host, 500}                     % Forbid requests with 429 status if host send over 500 request in last minute
 ].
 ```
 
