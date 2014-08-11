@@ -30,6 +30,7 @@ teardown(_) ->
 
 test_standart_flow() ->
   schedule:clear(),
+  statistics:clear(),
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{200, ""}, [], <<"">>}}),
 
@@ -42,6 +43,8 @@ test_standart_flow() ->
   meck:unload(lhttpc).
 
 test_retry() ->
+  schedule:clear(),
+  statistics:clear(),
   ok = meck:new(lhttpc),
   Responses = [
     {error, "Some Reason"},

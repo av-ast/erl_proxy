@@ -5,7 +5,7 @@
 
 -export([start_link/1]).
 -export([init/1, handle_call/3, handle_cast/2, terminate/2, handle_info/2, code_change/3, stop/0]).
--export([add_request_from_host/1, requests_from_host/1, clear/0]).
+-export([add_request_from_host/1, requests_from_host/1, requests_from_all_hosts/0, clear/0]).
 
 -record(state, {
           redis_client :: pid() | undefined,
@@ -38,6 +38,10 @@ add_request_from_host(Host) ->
 requests_from_host(Host) ->
   gen_server:call(?MODULE, {requests_from_host, Host}).
 
+%% @spec requestsFromAllHosts() -> [{Host, Numbers_of_requests} | T]
+requests_from_all_hosts() ->
+  gen_server:call(?MODULE, requests_from_all_hosts).
+
 %% @spec clear() -> ok
 clear() ->
   gen_server:call(?MODULE, clear).
@@ -48,6 +52,9 @@ handle_call({requests_from_host, Host}, _From, #state{redis_client = RedisClient
   {ok, RequestsCountBinary} = hierdis:command(RedisClient, ["ZSCORE", sorted_set_key_name(Namespace), Host]),
   RequestsCount = list_to_integer(binary_to_list(RequestsCountBinary)),
   {reply, RequestsCount, State};
+handle_call(requests_from_all_hosts, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
+  {ok, Result} = hierdis:command(RedisClient, ["ZREVRANGEBYSCORE", sorted_set_key_name(Namespace), "+inf", "-inf", "WITHSCORES"]),
+  {reply, redis_response_to_tuple_list(Result), State};
 handle_call(clear, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
   {ok, Keys} = hierdis:command(RedisClient, ["KEYS", sorted_set_key_name_mask(Namespace)]),
   {ok, _} = hierdis:command(RedisClient, ["DEL", Keys]),
@@ -74,6 +81,12 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVersion, State, _Extra) ->
   {ok, State}.
+
+redis_response_to_tuple_list([]) ->
+  [];
+redis_response_to_tuple_list([Host, Count | T]) ->
+  RequestsCount = list_to_integer(binary_to_list(Count)),
+  [{Host, RequestsCount} | redis_response_to_tuple_list(T)].
 
 sorted_set_key_name_mask(Namespace) ->
   Namespace ++ ":statistics_sorted_set:*".

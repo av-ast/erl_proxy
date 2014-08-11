@@ -1,4 +1,4 @@
--module(api_tests).
+-module(api_statistics_tests).
 
 -compile(export_all).
 
@@ -30,29 +30,32 @@ teardown(_) ->
 
 test_get() ->
   schedule:clear(),
+  statistics:clear(),
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{500, ""}, [], <<"">>}}),
 
   ?MODULE:request_to_proxy("/", get),
-  ?assertEqual(1, schedule:length()),
 
-  {Status, Body} = ?MODULE:request_to_proxy("/schedule", get),
+  {Status, Body} = ?MODULE:request_to_proxy("/statistics", get),
   ?assertEqual(200, Status),
-  ?assertEqual("{\"length\":1}", Body),
+  ?assertEqual("{\"127.0.0.1\":1}", Body),
 
   meck:unload(lhttpc).
 
 test_delete() ->
   schedule:clear(),
+  statistics:clear(),
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{500, ""}, [], <<"">>}}),
 
   ?MODULE:request_to_proxy("/", get),
-  ?assertEqual(1, schedule:length()),
 
-  {Status, Body} = ?MODULE:request_to_proxy("/schedule", delete),
+  {Status, Body} = ?MODULE:request_to_proxy("/statistics", delete),
   ?assertEqual(204, Status),
-  ?assertEqual(0, schedule:length()),
+
+  {StatusGet, BodyGet} = ?MODULE:request_to_proxy("/statistics", get),
+  ?assertEqual(200, StatusGet),
+  ?assertEqual("[]", BodyGet),
 
   meck:unload(lhttpc).
 

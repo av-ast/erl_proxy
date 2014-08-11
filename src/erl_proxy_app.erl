@@ -38,6 +38,7 @@ start_web_server() ->
   Dispatch = cowboy_router:compile([
     {'_', [
       {"/schedule", schedule_handler, []},
+      {"/statistics", statistics_handler, []},
       {'_', request_handler, []}
     ]}
   ]),

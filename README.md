@@ -84,6 +84,22 @@ Clear queue:
 curl -X DELETE localhost:8888/schedule
 ```
 
+Get request statistics for current minute:
+
+``` bash
+curl -H "Accept: application/json" localhost:8888/statistics
+{
+  "some.host": 100,
+  "another.host": 1
+}
+```
+
+Clear statistics and limits(see `max_rpm_per_host`):
+
+``` bash
+curl -X DELETE localhost:8888/statistics
+```
+
 ## Contributing
 
 Project is open for issues and pull requests. Feel free to make one... or more :)
