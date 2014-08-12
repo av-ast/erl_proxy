@@ -65,7 +65,8 @@ File `<APP_ROOT>/src/erl_proxy.app.src` or `<RELEASE_ROOT>/etc/app.config` store
   {connection_timeout, 1000},                 % Connection timeout for forwarded requests (ms)
   {request_timeout, 5000},                    % Timeout of response for forwarded requests (ms)
   {delay_between_requests, 500},              % Delay between forwarded requests (ms)
-  {max_rpm_per_host, 500}                     % Forbid requests with 429 status if host send over 500 request in last minute
+  {max_rpm_per_host, 500},                    % Forbid requests with 429 status if host sends over 500 request in last minute
+  {too_many_requests_status, 429}             % Reply status for incoming clients' requests
 ].
 ```
 
@@ -94,7 +95,7 @@ curl -H "Accept: application/json" localhost:8888/statistics
 }
 ```
 
-Clear statistics and limits(see `max_rpm_per_host`):
+Clear statistics and RPM limits(see `max_rpm_per_host`):
 
 ``` bash
 curl -X DELETE localhost:8888/statistics

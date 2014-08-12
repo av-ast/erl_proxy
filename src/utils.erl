@@ -1,6 +1,6 @@
 -module(utils).
 
--export([ts/0, unix_ts/0, ts_str/0, deep_binary_to_list/1]).
+-export([ts/0, unix_ts/0, ts_str/0, ip_string_from_cowboy_req/1, current_minute_number/0, redis_withscores_to_tuple_list/1, deep_binary_to_list/1]).
 
 ts() ->
   {Megasecs, Secs, Microsecs} = now(),
@@ -12,6 +12,20 @@ unix_ts() ->
 
 ts_str() ->
   integer_to_list(ts()).
+
+current_minute_number() ->
+  unix_ts() div 60.
+
+ip_string_from_cowboy_req(Req) ->
+  {{IpAddress, _},_} = cowboy_req:peer(Req),
+  inet:ntoa(IpAddress).
+
+% return reversed list
+redis_withscores_to_tuple_list([Member, Score | T]) ->
+  ScoreInt = binary_to_integer(Score),
+  [{Member, ScoreInt} | redis_withscores_to_tuple_list(T)];
+redis_withscores_to_tuple_list(_) ->
+  [].
 
 %%
 %% @spec deep_binary_to_list(List) -> list()

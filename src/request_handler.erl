@@ -6,7 +6,10 @@ init(_Transport, Req, []) ->
   {ok, Req, undefined}.
 
 handle(Req, State) ->
-  CanProcess = can_process(Req),
+  IpAddress = utils:ip_string_from_cowboy_req(Req),
+  statistics:add_request_from_host(IpAddress),
+
+  CanProcess = can_process(IpAddress),
   {ok, ResultReq} = if
     CanProcess -> usual_request(Req);
     true -> too_many_requests(Req)
@@ -21,7 +24,7 @@ usual_request(Req) ->
   cowboy_req:reply(erl_proxy_app:config(reply_status), Req).
 
 too_many_requests(Req) ->
-  cowboy_req:reply(429, Req).
+  cowboy_req:reply(erl_proxy_app:config(too_many_requests_status), Req).
 
 prepare_request_for_storage(Req) ->
   {Method, _} = cowboy_req:method(Req),
@@ -38,11 +41,8 @@ prepare_request_for_storage(Req) ->
 
   utils:deep_binary_to_list(NewReq).
 
-can_process(Req) ->
-  {{IpAddress, _},_} = cowboy_req:peer(Req),
-  IpString = inet:ntoa(IpAddress),
-  statistics:add_request_from_host(IpString),
-  statistics:requests_from_host(IpString) =< erl_proxy_app:config(max_rpm_per_host).
+can_process(IpAddress) ->
+  statistics:requests_from_host(IpAddress) =< erl_proxy_app:config(max_rpm_per_host).
 
 terminate(_Reason, _Req, _State) ->
 	ok.

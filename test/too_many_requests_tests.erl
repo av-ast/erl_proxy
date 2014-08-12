@@ -19,6 +19,7 @@ setup() ->
   erl_proxy_app:config(schedule_pool_interval, 100),
   erl_proxy_app:config(delay_formula, [{coefficient, 0}, {power, 0}]),
   erl_proxy_app:config(forward_to, "http://localhost/"),
+  erl_proxy_app:config(too_many_requests_status, 429),
   erl_proxy_app:config(max_rpm_per_host, 1).
   % SEE THIS LINE                       ^^^
 

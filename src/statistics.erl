@@ -54,7 +54,7 @@ handle_call({requests_from_host, Host}, _From, #state{redis_client = RedisClient
   {reply, RequestsCount, State};
 handle_call(requests_from_all_hosts, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
   {ok, Result} = hierdis:command(RedisClient, ["ZREVRANGEBYSCORE", sorted_set_key_name(Namespace), "+inf", "-inf", "WITHSCORES"]),
-  {reply, redis_response_to_tuple_list(Result), State};
+  {reply, utils:redis_withscores_to_tuple_list(Result), State};
 handle_call(clear, _From, #state{redis_client = RedisClient, redis_namespace = Namespace} = State) ->
   {ok, Keys} = hierdis:command(RedisClient, ["KEYS", sorted_set_key_name_mask(Namespace)]),
   {ok, _} = hierdis:command(RedisClient, ["DEL", Keys]),
@@ -82,21 +82,12 @@ terminate(_Reason, _State) ->
 code_change(_OldVersion, State, _Extra) ->
   {ok, State}.
 
-redis_response_to_tuple_list([]) ->
-  [];
-redis_response_to_tuple_list([Host, Count | T]) ->
-  RequestsCount = list_to_integer(binary_to_list(Count)),
-  [{Host, RequestsCount} | redis_response_to_tuple_list(T)].
-
 sorted_set_key_name_mask(Namespace) ->
   Namespace ++ ":statistics_sorted_set:*".
 
 sorted_set_key_name(Namespace) ->
-  Namespace ++ ":statistics_sorted_set:" ++ integer_to_list(current_minute_number()).
-
-current_minute_number() ->
-  utils:unix_ts() div 60.
+  Namespace ++ ":statistics_sorted_set:" ++ integer_to_list(utils:current_minute_number()).
 
 sorted_set_expire_at() ->
   Ttl = 2 * 60,
-  current_minute_number() * 60 + Ttl.
+  utils:current_minute_number() * 60 + Ttl.
