@@ -1,4 +1,4 @@
--module(erl_proxy_tests).
+-module(too_many_requests_tests).
 
 -compile(export_all).
 
@@ -9,10 +9,8 @@ erl_proxy_test_() ->
     fun setup/0,
     fun teardown/1,
     [
-      {"Test standart flow",
-      fun test_standart_flow/0},
-      {"Test retry",
-      fun test_retry/0}
+      {"Test",
+      fun test/0}
     ]
   }.
 
@@ -21,43 +19,28 @@ setup() ->
   erl_proxy_app:config(schedule_pool_interval, 100),
   erl_proxy_app:config(delay_formula, [{coefficient, 0}, {power, 0}]),
   erl_proxy_app:config(forward_to, "http://localhost/"),
-  erl_proxy_app:config(max_rpm_per_host, 500).
+  erl_proxy_app:config(too_many_requests_status, 429),
+  erl_proxy_app:config(max_rpm_per_host, 1).
+  % SEE THIS LINE                       ^^^
 
 teardown(_) ->
   schedule:clear(),
   statistics:clear(),
   erl_proxy_app:stop().
 
-test_standart_flow() ->
+test() ->
   schedule:clear(),
   statistics:clear(),
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{200, ""}, [], <<"">>}}),
 
-  Status = ?MODULE:request_to_proxy(),
-  ?assertEqual(200, Status),
+  Status1 = ?MODULE:request_to_proxy(),
+  ?assertEqual(200, Status1),
+
+  Status2 = ?MODULE:request_to_proxy(),
+  ?assertEqual(429, Status2),
 
   RetryCount = 1,
-  Timeout = calc_timeout(RetryCount),
-  ok = meck:wait(RetryCount, lhttpc, request, 6, Timeout),
-  meck:unload(lhttpc).
-
-test_retry() ->
-  schedule:clear(),
-  statistics:clear(),
-  ok = meck:new(lhttpc),
-  Responses = [
-    {error, "Some Reason"},
-    {ok, {{500, ""}, [], <<"">>}},
-    {ok, {{200, ""}, [], <<"">>}}
-  ],
-
-  ok = meck:expect(lhttpc, request, lhttpc_request_ags(), meck:seq(Responses)),
-
-  Status = ?MODULE:request_to_proxy(),
-  ?assertEqual(200, Status),
-
-  RetryCount = length(Responses),
   Timeout = calc_timeout(RetryCount),
   ok = meck:wait(RetryCount, lhttpc, request, 6, Timeout),
   meck:unload(lhttpc).

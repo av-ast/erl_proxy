@@ -26,8 +26,10 @@ start_link() ->
 
 init([]) ->
   ScheduleArgs = lists:merge(erl_proxy_app:config(redis), erl_proxy_app:config(schedule)),
+  StatisticsArgs = erl_proxy_app:config(redis),
   Children = [
               ?CHILD_WITH_ARGS(schedule, ScheduleArgs, worker),
+              ?CHILD_WITH_ARGS(statistics, StatisticsArgs, worker),
               ?CHILD(request_forwarder, worker)
              ],
   {ok, { {one_for_one, 5, 10}, Children} }.

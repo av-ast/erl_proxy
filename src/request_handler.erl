@@ -6,13 +6,25 @@ init(_Transport, Req, []) ->
   {ok, Req, undefined}.
 
 handle(Req, State) ->
-  Request = prepare_request_for_storage(Req),
-  schedule:add(Request),
+  IpAddress = utils:ip_string_from_cowboy_req(Req),
+  statistics:add_request_from_host(IpAddress),
 
-  {ok, Req2} = cowboy_req:reply(erl_proxy_app:config(reply_status), [{<<"connection">>, <<"close">>}], Req),
-  Req3 = cowboy_req:compact(Req2),
-  
-  {ok, Req3, State}.
+  CanProcess = can_process(IpAddress),
+  {ok, ResultReq} = if
+    CanProcess -> usual_request(Req);
+    true -> too_many_requests(Req)
+  end,
+
+  CompactedRequest = cowboy_req:compact(ResultReq),
+  {ok, CompactedRequest, State}.
+
+usual_request(Req) ->
+  RequestForStore = prepare_request_for_storage(Req),
+  schedule:add(RequestForStore),
+  cowboy_req:reply(erl_proxy_app:config(reply_status), Req).
+
+too_many_requests(Req) ->
+  cowboy_req:reply(erl_proxy_app:config(too_many_requests_status), Req).
 
 prepare_request_for_storage(Req) ->
   {Method, _} = cowboy_req:method(Req),
@@ -22,13 +34,15 @@ prepare_request_for_storage(Req) ->
   {Headers, _} = cowboy_req:headers(Req),
   {ok, Body, _} = cowboy_req:body(Req),
 
-
   NewReq = [
    {method,Method}, {url,Url}, {path, Path}, {qstring, QString}, {headers,Headers}, {body, Body},
    {retry_count, 0}
   ],
 
   utils:deep_binary_to_list(NewReq).
+
+can_process(IpAddress) ->
+  statistics:requests_from_host(IpAddress) =< erl_proxy_app:config(max_rpm_per_host).
 
 terminate(_Reason, _Req, _State) ->
 	ok.

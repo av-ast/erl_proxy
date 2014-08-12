@@ -1,4 +1,4 @@
--module(api_tests).
+-module(api_statistics_tests).
 
 -compile(export_all).
 
@@ -20,37 +20,42 @@ setup() ->
   {ok, _} = erl_proxy_app:start(),
   erl_proxy_app:config(schedule_pool_interval, 1000),
   erl_proxy_app:config(delay_formula, [{coefficient, 0}, {power, 0}]),
-  erl_proxy_app:config(forward_to, "http://localhost/").
+  erl_proxy_app:config(forward_to, "http://localhost/"),
+  erl_proxy_app:config(max_rpm_per_host, 500).
 
 teardown(_) ->
   schedule:clear(),
+  statistics:clear(),
   erl_proxy_app:stop().
 
 test_get() ->
   schedule:clear(),
+  statistics:clear(),
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{500, ""}, [], <<"">>}}),
 
   ?MODULE:request_to_proxy("/", get),
-  ?assertEqual(1, schedule:length()),
 
-  {Status, Body} = ?MODULE:request_to_proxy("/schedule", get),
+  {Status, Body} = ?MODULE:request_to_proxy("/statistics", get),
   ?assertEqual(200, Status),
-  ?assertEqual("{\"length\":1}", Body),
+  ?assertEqual("{\"127.0.0.1\":1}", Body),
 
   meck:unload(lhttpc).
 
 test_delete() ->
   schedule:clear(),
+  statistics:clear(),
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{500, ""}, [], <<"">>}}),
 
   ?MODULE:request_to_proxy("/", get),
-  ?assertEqual(1, schedule:length()),
 
-  {Status, Body} = ?MODULE:request_to_proxy("/schedule", delete),
+  {Status, Body} = ?MODULE:request_to_proxy("/statistics", delete),
   ?assertEqual(204, Status),
-  ?assertEqual(0, schedule:length()),
+
+  {StatusGet, BodyGet} = ?MODULE:request_to_proxy("/statistics", get),
+  ?assertEqual(200, StatusGet),
+  ?assertEqual("[]", BodyGet),
 
   meck:unload(lhttpc).
 
