@@ -22,7 +22,7 @@ ip_string_from_cowboy_req(Req) ->
 
 % return reversed list
 redis_withscores_to_tuple_list([Member, Score | T]) ->
-  ScoreInt = list_to_integer(binary_to_list(Score)),
+  ScoreInt = binary_to_integer(Score),
   [{Member, ScoreInt} | redis_withscores_to_tuple_list(T)];
 redis_withscores_to_tuple_list(_) ->
   [].
