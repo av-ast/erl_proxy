@@ -1,7 +1,5 @@
 -module(api_tests).
 
--compile(export_all).
-
 -include_lib("eunit/include/eunit.hrl").
 
 api_test_() ->
@@ -31,10 +29,10 @@ test_get() ->
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{500, ""}, [], <<"">>}}),
 
-  ?MODULE:request_to_proxy("/", get),
+  request_to_proxy("/", get),
   ?assertEqual(1, schedule:length()),
 
-  {Status, Body} = ?MODULE:request_to_proxy("/schedule", get),
+  {Status, Body} = request_to_proxy("/schedule", get),
   ?assertEqual(200, Status),
   ?assertEqual("{\"length\":1}", Body),
 
@@ -45,10 +43,10 @@ test_delete() ->
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{500, ""}, [], <<"">>}}),
 
-  ?MODULE:request_to_proxy("/", get),
+  request_to_proxy("/", get),
   ?assertEqual(1, schedule:length()),
 
-  {Status, _Body} = ?MODULE:request_to_proxy("/schedule", delete),
+  {Status, _Body} = request_to_proxy("/schedule", delete),
   ?assertEqual(204, Status),
   ?assertEqual(0, schedule:length()),
 

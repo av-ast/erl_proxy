@@ -1,7 +1,5 @@
 -module(schedule_tests).
 
--compile(export_all).
-
 -include_lib("eunit/include/eunit.hrl").
 
 schedule_test_() ->

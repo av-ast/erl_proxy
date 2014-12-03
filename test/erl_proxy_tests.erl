@@ -1,7 +1,5 @@
 -module(erl_proxy_tests).
 
--compile(export_all).
-
 -include_lib("eunit/include/eunit.hrl").
 
 erl_proxy_test_() ->
@@ -31,7 +29,7 @@ test_standart_flow() ->
   ok = meck:new(lhttpc),
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), {ok, {{200, ""}, [], <<"">>}}),
 
-  Status = ?MODULE:request_to_proxy(),
+  Status = request_to_proxy(),
   ?assertEqual(200, Status),
 
   RetryCount = 1,
@@ -49,7 +47,7 @@ test_retry() ->
 
   ok = meck:expect(lhttpc, request, lhttpc_request_ags(), meck:seq(Responses)),
 
-  Status = ?MODULE:request_to_proxy(),
+  Status = request_to_proxy(),
   ?assertEqual(200, Status),
 
   RetryCount = length(Responses),
