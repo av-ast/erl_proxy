@@ -48,7 +48,7 @@ test_delete() ->
   ?MODULE:request_to_proxy("/", get),
   ?assertEqual(1, schedule:length()),
 
-  {Status, Body} = ?MODULE:request_to_proxy("/schedule", delete),
+  {Status, _Body} = ?MODULE:request_to_proxy("/schedule", delete),
   ?assertEqual(204, Status),
   ?assertEqual(0, schedule:length()),
 
